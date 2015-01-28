@@ -378,6 +378,7 @@ static void ROR_A() {
     calculate_carry(cpu.A & 1);
     calculate_zero(result);
     calculate_sign(result);
+    cpu.A = result;
 }
 
 /* Rotate memory right one bit */
@@ -388,6 +389,7 @@ static void ROR_M() {
     calculate_carry(cpu.operand & 1);
     calculate_zero(result);
     calculate_sign(result);
+    cpu.operand = result;
 }
 
 /* ROR memory and ADC result with accumulator (UNOFFICIAL) */
