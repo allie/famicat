@@ -4,9 +4,15 @@
 /* Global CPU */
 CPU cpu;
 
-/* Re-initialize all CPU registers and variables */
-void CPU_Reset() {
+/* --- Flag manipulation macros/functions --- */
 
+#define set(f) cpu.S |= f
+#define clear(f) cpu.S &= ~(f)
+
+static void calc(uint8_t flag) {
+	switch (flag) {
+		/* TODO: calc flags */
+	}
 }
 
 /* --- Addressing mode functions --- */
@@ -203,7 +209,7 @@ static void CPY() {
 /* DEC memory and CMP result with accumulator (UNOFFICIAL) */
 /* ? */
 static void DCP() {
-	
+
 }
 
 /* Decrement memory by one */
@@ -527,6 +533,11 @@ static const uint32_t cycles[256] = {
 /* E */ 2,   6,   2,   8,   3,   3,   5,   5,   2,   2,   2,   2,   4,   4,   6,   6,
 /* F */ 2,   5,   2,   8,   4,   4,   6,   6,   2,   4,   2,   7,   4,   4,   7,   7
 };
+
+/* Re-initialize all CPU registers and variables */
+void CPU_Reset() {
+
+}
 
 /* Execute one CPU instruction */
 void CPU_Step() {
