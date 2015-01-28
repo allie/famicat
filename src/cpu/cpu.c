@@ -200,6 +200,12 @@ static void CPY() {
 
 }
 
+/* DEC memory and CMP result with accumulator (UNOFFICIAL) */
+/* ? */
+static void DCP() {
+	
+}
+
 /* Decrement memory by one */
 /* N Z */
 static void DEC() {
@@ -242,6 +248,12 @@ static void INY() {
 
 }
 
+/* INC memory and SBC result from the accumulator (UNOFFICIAL) */
+/* ? */
+static void ISB() {
+
+}
+
 /* Jump to new location */
 /* No flags changed */
 static void JMP() {
@@ -251,6 +263,12 @@ static void JMP() {
 /* Jump to new location saving return address */
 /* No flags changed */
 static void JSR() {
+
+}
+
+/* Load accumulator and index X with memory (UNOFFICIAL) */
+/* ? */
+static void LAX() {
 
 }
 
@@ -314,6 +332,12 @@ static void PLP() {
 
 }
 
+/* ROL memory and AND result with accumulator (UNOFFICIAL) */
+/* ? */
+static void RLA() {
+	
+}
+
 /* Rotate memory or accumulator left one bit */
 /* N Z C */
 static void ROL() {
@@ -326,6 +350,12 @@ static void ROR() {
 
 }
 
+/* ROR memory and ADC result with accumulator (UNOFFICIAL) */
+/* ? */
+static void RRA() {
+
+}
+
 /* Return from interrupt */
 /* N Z C I D V = pull from stack */
 static void RTI() {
@@ -335,6 +365,12 @@ static void RTI() {
 /* Return from subroutine */
 /* No flags changed */
 static void RTS() {
+
+}
+
+/* AND accumulator with index X and store the result in memory (UNOFFICIAL) */
+/* No flags changed */
+static void SAX() {
 
 }
 
@@ -361,6 +397,18 @@ static void SED() {
 /* Set interrupt disable flag */
 /* I=1 */
 static void SEI() {
+
+}
+
+/* ASL memory and OR result with accumulator (UNOFFICIAL) */
+/* ? */
+static void SLO() {
+
+}
+
+/* LSR memory and XOR result with accumulator (UNOFFICIAL) */
+/* ? */
+static void SRE() {
 
 }
 
