@@ -47,12 +47,12 @@ void calculate_overflow(uint8_t cond){
 
 void calculate_sign(uint8_t num){
 	if(num & 0x80)
-		set_flag(FLAG_S);
+		set_flag(FLAG_N);
 	else
-		clear_flag(FLAG_S);
+		clear_flag(FLAG_N);
 }
 
-#include "instructions.c"
+#include "instructions.i"
 
 /* --- Addressing mode functions --- */
 

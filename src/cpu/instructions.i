@@ -74,7 +74,7 @@ static void BIT() {
 /* Branch on result minus (N set) */
 /* No flags changed */
 static void BMI() {
-    if(get_flag(FLAG_S))
+    if(get_flag(FLAG_N))
         cpu.PC += cpu.operand;
 }
 
@@ -88,7 +88,7 @@ static void BNE() {
 /* Branch on result plus (N cleared) */
 /* No flags changed */
 static void BPL() {
-    if(!get_flag(FLAG_S))
+    if(!get_flag(FLAG_N))
         cpu.PC += cpu.operand;
 }
 
