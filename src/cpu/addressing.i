@@ -10,7 +10,7 @@ static void ACC() {
 
 /* Immediate */
 static void IMM() {
-	cpu.operaddr = cpu.PC++
+	cpu.operaddr = cpu.PC++;
 }
 
 /* Zero-page */

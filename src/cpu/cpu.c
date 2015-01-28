@@ -5,66 +5,58 @@
 CPU cpu;
 
 /* --- Flag manipulation macros/functions --- */
-#define SET(f) cpu.S |= f
-#define CLEAR(f) cpu.S &= ~(f)
+#define SET_FLAG(f) cpu.S |= f
+#define CLEAR_FLAG(f) cpu.S &= ~(f)
+#define GET_FLAG(f) cpu.S & f
 
-#define set_flag(f) cpu.S |= f
-#define clear_flag(f) cpu.S &= ~(f)
-#define get_flag(f) cpu.S & f
-
-void calculate_carry(uint8_t cond){
-	if(cond)
-		set_flag(FLAG_C);
+void calculate_carry(BYTE cond) {
+	if (cond)
+		SET_FLAG(FLAG_C);
 	else
-		clear_flag(FLAG_C);
+		CLEAR_FLAG(FLAG_C);
 }
 
-void calculate_zero(uint8_t num){
+void calculate_zero(BYTE num) {
 	if(num == 0)
-		set_flag(FLAG_Z);
+		SET_FLAG(FLAG_Z);
 	else
-		clear_flag(FLAG_Z);
+		CLEAR_FLAG(FLAG_Z);
 }
 
-void calculate_interrupt(uint8_t cond){
-	if(cond)
-		set_flag(FLAG_I);
+void calculate_interrupt(BYTE cond) {
+	if (cond)
+		SET_FLAG(FLAG_I);
 	else
-		clear_flag(FLAG_I);
+		CLEAR_FLAG(FLAG_I);
 }
 
-void calculate_break(uint8_t cond){
-	if(cond)
-		set_flag(FLAG_B);
+void calculate_break(BYTE cond) {
+	if (cond)
+		SET_FLAG(FLAG_B);
 	else
-		clear_flag(FLAG_B);
+		CLEAR_FLAG(FLAG_B);
 }
 
-void calculate_overflow(uint8_t cond){
-	if(cond)
-		set_flag(FLAG_V);
+void calculate_overflow(BYTE cond) {
+	if (cond)
+		SET_FLAG(FLAG_V);
 	else
-		clear_flag(FLAG_V);
+		CLEAR_FLAG(FLAG_V);
 }
 
-void calculate_sign(uint8_t num){
-	if(num & 0x80)
-		set_flag(FLAG_N);
+void calculate_sign(BYTE num) {
+	if (num & 0x80)
+		SET_FLAG(FLAG_N);
 	else
-		clear_flag(FLAG_N);
+		CLEAR_FLAG(FLAG_N);
 }
-
-#include "instructions.i"
 
 /* --- Addressing mode functions --- */
 #include "addressing.i"
 
-<<<<<<< HEAD
-=======
 /* --- CPU instruction functions --- */
 #include "instructions.i"
 
->>>>>>> upstream/master
 /* Addressing mode function pointer table for fetching operands; indexed by opcode */
 static void (*addr[256])() = {
 /*    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | A  | B  | C  | D  | E  | F  |*/
@@ -108,7 +100,7 @@ static void (*instr[256])() = {
 };
 
 /* Clock cycle table; indexed by opcode */
-static const uint32_t cycles[256] = {
+static const DWORD cycles[256] = {
 /*    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | A  | B  | C  | D  | E  | F  |*/
 /* 0 */ 7,   6,   2,   8,   3,   3,   5,   5,   3,   2,   2,   2,   4,   4,   6,   6,
 /* 1 */ 2,   5,   2,   8,   4,   4,   6,   6,   2,   4,   2,   7,   4,   4,   7,   7,
