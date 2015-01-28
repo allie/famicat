@@ -1,4 +1,4 @@
-1/* TODO: Get memory value of operand */
+/* TODO: Get memory value of operand */
 /* --- CPU instruction functions --- */
 
 /* Add memory to the accumulator with carry */
@@ -96,6 +96,305 @@ static void BPL() {
 /* I=1 */
 static void BRK() {
     set_flag(FLAG_B);
+    /* TODO */
+}
+
+/* Branch on overflow clear */
+/* No flags changed */
+static void BVC() {
+    if(!get_flag(FLAG_V))
+        cpu.PC += cpu.operand;
+}
+
+/* Branch on overflow set */
+/* No flags changed */
+static void BVS() {
+    if(get_flag(FLAG_V))
+        cpu.PC += cpu.operand;
+}
+
+/* Clear carry flag */
+/* C=0 */
+static void CLC() {
+    clear_flag(FLAG_C);
+}
+
+/* Clear decimal mode (NOT USED IN NES MODE) */
+/* D=0 */
+static void CLD() {
+    #ifdef NES_MODE
+        /* TODO */
+    #endif
+}
+
+/* Clear interrupt disable flag */
+/* I=0 */
+static void CLI() {
+    clear_flag(FLAG_I);
+}
+
+/* Clear overflow flag */
+/* V=0 */
+static void CLV() {
+    clear_flag(FLAG_V);
+}
+
+/* Compare memory and accumulator */
+/* N Z C */
+static void CMP() {
+    uint8_t result = cpu.A - cpu.operand;
+    calculate_carry(cpu.A >= cpu.operand);
+    calcluate_zero(result);
+    calculate_sign(result);
+}
+
+/* Compare memory and index X */
+/* N Z C */
+static void CPX() {
+    uint8_t result = cpu.X - cpu.operand;
+    calculate_carry(cpu.X >= cpu.operand);
+    calcluate_zero(result);
+    calculate_sign(result);
+}
+
+/* Compare memory and index Y */
+/* N Z C */
+static void CPY() {
+    uint8_t result = cpu.Y - cpu.operand;
+    calculate_carry(cpu.Y >= cpu.operand);
+    calcluate_zero(result);
+    calculate_sign(result);
+}
+
+/* DEC memory and CMP result with accumulator (UNOFFICIAL) */
+/* ? */
+static void DCP() {
+    /* TODO */
+}
+
+/* Decrement memory by one */
+/* N Z */
+static void DEC() {
+    uint8_t result = cpu.operand - 1;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.operand = result;
+}
+
+/* Decrement index X by one */
+/* N Z */
+static void DEX() {
+    uint8_t result = cpu.X - 1;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.X = result;
+}
+
+/* Decrement index Y by one */
+/* N Z */
+static void DEY() {
+    uint8_t result = cpu.Y - 1;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.Y = result;
+}
+
+/* XOR memory with accumulator */
+/* N Z */
+static void EOR() {
+    uint8_t result = cpu.A ^ cpu.operand;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.A = result;
+}
+
+/* Increment memory by one */
+/* N Z */
+static void INC() {
+    uint8_t result = cpu.operand + 1;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.operand = result;
+}
+
+/* Increment index X by one */
+/* N Z */
+static void INX() {
+    uint8_t result = cpu.X + 1;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.X = result;
+}
+
+/* Increment index Y by one */
+/* N Z */
+static void INY() {
+    uint8_t result = cpu.Y + 1;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.Y = result;
+}
+
+/* INC memory and SBC result from the accumulator (UNOFFICIAL) */
+/* ? */
+static void ISB() {
+    /* TODO */
+}
+
+/* Jump to new location */
+/* No flags changed */
+static void JMP() {
+    cpu.PC = cpu.operand;
+}
+
+/* Jump to new location saving return address */
+/* No flags changed */
+static void JSR() {
+    /* TODO */
+}
+
+/* Load accumulator and index X with memory (UNOFFICIAL) */
+/* ? */
+static void LAX() {
+    /* TODO */
+}
+
+/* Load accumulator with memory */
+/* N Z */
+static void LDA() {
+    cpu.A = cpu.operand;
+    calculate_zero(cpu.A);
+    calculate_sign(cpu.A);
+}
+
+/* Load index X with memory */
+/* N Z */
+static void LDX() {
+    cpu.X = cpu.operand;
+    calculate_zero(cpu.X);
+    calculate_sign(cpu.X);
+}
+
+/* Load index Y with memory */
+/* N Z */
+static void LDY() {
+    cpu.Y = cpu.operand;
+    calculate_zero(cpu.Y);
+    calculate_sign(cpu.Y);
+}
+
+/* Shift accumulator right one bit */
+/* N=0 Z C */
+static void LSR_A() {
+    uint8_t result = cpu.A >> 1;
+    calculate_carry(cpu.A & 1);
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.A = result;
+}
+
+/* Shift memory right one bit */
+/* N=0 Z C */
+static void LSR_M() {
+    uint8_t result = cpu.operand >> 1;
+    calculate_carry(cpu.operand & 1);
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.operand = result;
+}
+
+/* No operation */
+/* No flags changed */
+static void NOP() {
+    /* Leave empty */
+}
+
+/* OR memory with accumulator */
+/* N Z */
+static void ORA() {
+    uint8_t result = cpu.A | cpu.operand;
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.A = result;
+}
+
+/* Push accumulator onto stack */
+/* No flags changed */
+static void PHA() {
+    /* TODO */
+}
+
+/* Push processor status onto stack */
+/* No flags changed */
+static void PHP() {
+    /* TODO */
+}
+
+/* Pull accumulator from stack */
+/* No flags changed */
+static void PLA() {
+    /* TODO */
+}
+
+/* Pull processor status from stack */
+/* N Z C I D V = pull from stack */
+static void PLP() {
+    /* TODO */
+}
+
+/* ROL memory and AND result with accumulator (UNOFFICIAL) */
+/* ? */
+static void RLA() {
+    /* TODO */
+}
+
+/* Rotate accumulator left one bit */
+/* N Z C */
+static void ROL_A() {
+    uint8_t result = cpu.A << 1;
+    result &= get_flag(FLAG_C);
+    calculate_carry(cpu.A & 0x80);
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.A = result;
+}
+
+/* Rotate memory left one bit */
+/* N Z C */
+static void ROL_M() {
+    uint8_t result = cpu.operand << 1;
+    result &= get_flag(FLAG_C);
+    calculate_carry(cpu.operand & 0x80);
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.operand = result;
+}
+
+/* Rotate accumulator right one bit */
+/* N Z C */
+static void ROR_A() {
+    uint8_t result = cpu.A >> 1;
+    result &= (get_flag(FLAG_C) && 0x80);
+    calculate_carry(cpu.A & 1);
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.A = result;
+}
+
+/* Rotate memory right one bit */
+/* N Z C */
+static void ROR_M() {
+    uint8_t result = cpu.operand >> 1;
+    result &= (get_flag(FLAG_C) && 0x80);
+    calculate_carry(cpu.operand & 1);
+    calculate_zero(result);
+    calculate_sign(result);
+    cpu.operand = result;
+}
+
+/* ROR memory and ADC result with accumulator (UNOFFICIAL) */
+/* ? */
+static void RRA() {
     /* TODO */
 }
 
