@@ -1,7 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include "common.h"
+#include "../common.h"
 
 /* Empty macros for noting "implied" and "accumulator" addressing modes;
    these modes do not need any implementation */

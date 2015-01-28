@@ -1,5 +1,5 @@
 #include "cpu.h"
-#include "memory.h"
+#include "../memory/memory.h"
 
 /* Global CPU */
 CPU cpu;
@@ -421,7 +421,7 @@ static void TXS() {
 
 /* Transfer index Y to accumulator */
 static void TYA() {
-	
+
 }
 
 /* Addressing mode function pointer table for fetching operands; indexed by opcode */
