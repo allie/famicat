@@ -4,10 +4,54 @@
 /* Global CPU */
 CPU cpu;
 
-/* Re-initialize all CPU registers and variables */
-void CPU_Reset() {
+/* --- Flag manipulation macros/functions --- */
 
+#define set_flag(f) cpu.S |= f
+#define clear_flag(f) cpu.S &= ~(f)
+#define get_flag(f) cpu.S & f
+
+void calculate_carry(uint8_t cond){
+	if(cond)
+		set_flag(FLAG_C);
+	else
+		clear_flag(FLAG_C);
 }
+
+void calculate_zero(uint8_t num){
+	if(num == 0)
+		set_flag(FLAG_Z);
+	else
+		clear_flag(FLAG_Z);
+}
+
+void calculate_interrupt(uint8_t cond){
+	if(cond)
+		set_flag(FLAG_I);
+	else
+		clear_flag(FLAG_I);
+}
+
+void calculate_break(uint8_t cond){
+	if(cond)
+		set_flag(FLAG_B);
+	else
+		clear_flag(FLAG_B);
+}
+
+void calculate_overflow(uint8_t cond){
+	if(cond)
+		set_flag(FLAG_V);
+	else
+		clear_flag(FLAG_V);
+}
+
+void calculate_sign(uint8_t num){
+	if(num & 0x80)
+		set_flag(FLAG_S);
+	else
+		clear_flag(FLAG_S);
+}
+						}
 
 /* --- Addressing mode functions --- */
 
@@ -138,6 +182,11 @@ static const uint32_t cycles[256] = {
 /* E */ 2,   6,   2,   8,   3,   3,   5,   5,   2,   2,   2,   2,   4,   4,   6,   6,
 /* F */ 2,   5,   2,   8,   4,   4,   6,   6,   2,   4,   2,   7,   4,   4,   7,   7
 };
+
+/* Re-initialize all CPU registers and variables */
+void CPU_Reset() {
+
+}
 
 /* Execute one CPU instruction */
 void CPU_Step() {
