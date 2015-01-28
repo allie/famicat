@@ -23,7 +23,7 @@ typedef struct {
 	uint8_t Y;
 	uint8_t S;
 	uint8_t opcode;
-	uint8_t operand;
+	uint16_t operaddr;
 	uint32_t cycles;
 } CPU;
 
