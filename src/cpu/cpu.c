@@ -51,7 +51,8 @@ void calculate_sign(uint8_t num){
 	else
 		clear_flag(FLAG_S);
 }
-						}
+
+#include "instructions.c"
 
 /* --- Addressing mode functions --- */
 
