@@ -11,7 +11,7 @@ CPU cpu;
 
 #define CALC_C(c) \
 	if ((c)) \
-		SET_FLAG(FLAG_C);\
+		SET_FLAG(FLAG_C); \
 	else \
 		CLEAR_FLAG(FLAG_C)
 
