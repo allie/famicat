@@ -13,25 +13,25 @@ CPU cpu;
 	if ((c)) \
 		SET_FLAG(FLAG_C); \
 	else \
-		CLEAR_FLAG(FLAG_C)
+		CLEAR_FLAG(FLAG_C);
 
 #define CALC_Z(n) \
 	if((n) == 0) \
 		SET_FLAG(FLAG_Z); \
 	else \
-		CLEAR_FLAG(FLAG_Z)
+		CLEAR_FLAG(FLAG_Z);
 
 #define CALC_I(c) \
 	if ((c)) \
 		SET_FLAG(FLAG_I); \
 	else \
-		CLEAR_FLAG(FLAG_I)
+		CLEAR_FLAG(FLAG_I);
 
 #define CALC_B(c) \
 	if ((c)) \
 		SET_FLAG(FLAG_B); \
 	else \
-		CLEAR_FLAG(FLAG_B)
+		CLEAR_FLAG(FLAG_B);
 
 #define CALC_V(c) \
 	if ((c)) \
@@ -43,7 +43,24 @@ CPU cpu;
 	if ((n) & 0x80) \
 		SET_FLAG(FLAG_N); \
 	else \
-		CLEAR_FLAG(FLAG_N)
+		CLEAR_FLAG(FLAG_N);
+
+/* --- Stack operations --- */
+static void pushb(BYTE val) {
+
+}
+
+static void pushw(WORD val) {
+
+}
+
+static BYTE pullb() {
+
+}
+
+static WORD pullw() {
+	
+}
 
 /* --- Addressing mode functions --- */
 #include "addressing.i"
