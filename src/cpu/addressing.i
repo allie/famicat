@@ -15,7 +15,7 @@ static void IMM() {
 
 /* Zero-page */
 static void ZPG() {
-	cpu.operaddr = (uint16_t)Memory_ReadByte()
+	cpu.operaddr = (WORD)Memory_ReadByte((WORD)cpu.PC++);
 }
 
 /* Zero-page, X */

@@ -16,15 +16,15 @@
 #define STACK_ADDR 0x100
 
 typedef struct {
-	uint16_t PC;
-	uint8_t SP;
-	uint8_t A;
-	uint8_t X;
-	uint8_t Y;
-	uint8_t S;
-	uint8_t opcode;
-	uint16_t operaddr;
-	uint32_t cycles;
+	WORD PC;
+	BYTE SP;
+	BYTE A;
+	BYTE X;
+	BYTE Y;
+	BYTE S;
+	BYTE opcode;
+	WORD operaddr;
+	DWORD cycles;
 } CPU;
 
 void CPU_Reset();
