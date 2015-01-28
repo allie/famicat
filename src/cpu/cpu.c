@@ -5,6 +5,8 @@
 CPU cpu;
 
 /* --- Flag manipulation macros/functions --- */
+#define SET(f) cpu.S |= f
+#define CLEAR(f) cpu.S &= ~(f)
 
 #define set_flag(f) cpu.S |= f
 #define clear_flag(f) cpu.S &= ~(f)
@@ -55,72 +57,14 @@ void calculate_sign(uint8_t num){
 #include "instructions.i"
 
 /* --- Addressing mode functions --- */
+#include "addressing.i"
 
-/* Implied */
-static void IMP() {
-	/* Leave empty */
-}
+<<<<<<< HEAD
+=======
+/* --- CPU instruction functions --- */
+#include "instructions.i"
 
-/* Accumulator */
-static void ACC() {
-	/* Leave empty */
-}
-
-/* Immediate */
-static void IMM() {
-
-}
-
-/* Zero-page */
-static void ZPG() {
-
-}
-
-/* Zero-page, X */
-static void ZPX() {
-
-}
-
-/* Zero-page, Y */
-static void ZPY() {
-
-}
-
-/* Relative */
-static void REL() {
-
-}
-
-/* Absolute */
-static void ABS() {
-
-}
-
-/* Absolute, X */
-static void ABX() {
-
-}
-
-/* Absolute, Y */
-static void ABY() {
-
-}
-
-/* Indirect */
-static void IND() {
-
-}
-
-/* (Indirect, X) */
-static void IDX() {
-
-}
-
-/* (Indirect), Y */
-static void IDY() {
-
-}
-
+>>>>>>> upstream/master
 /* Addressing mode function pointer table for fetching operands; indexed by opcode */
 static void (*addr[256])() = {
 /*    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | A  | B  | C  | D  | E  | F  |*/
@@ -144,23 +88,23 @@ static void (*addr[256])() = {
 
 /* CPU instruction function pointer table; indexed by opcode */
 static void (*instr[256])() = {
-/*    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | A  | B  | C  | D  | E  | F  |*/
-/* 0 */ BRK, ORA, NOP, SLO, NOP, ORA, ASL, SLO, PHP, ORA, ASL, NOP, NOP, ORA, ASL, SLO,
-/* 1 */ BPL, ORA, NOP, SLO, NOP, ORA, ASL, SLO, CLC, ORA, NOP, SLO, NOP, ORA, ASL, SLO,
-/* 2 */ JSR, AND, NOP, RLA, BIT, AND, ROL, RLA, PLP, AND, ROL, NOP, BIT, AND, ROL, RLA,
-/* 3 */ BMI, AND, NOP, RLA, NOP, AND, ROL, RLA, SEC, AND, NOP, RLA, NOP, AND, ROL, RLA,
-/* 4 */ RTI, EOR, NOP, SRE, NOP, EOR, LSR, SRE, PHA, EOR, LSR, NOP, JMP, EOR, LSR, SRE,
-/* 5 */ BVC, EOR, NOP, SRE, NOP, EOR, LSR, SRE, CLI, EOR, NOP, SRE, NOP, EOR, LSR, SRE,
-/* 6 */ RTS, ADC, NOP, RRA, NOP, ADC, ROR, RRA, PLA, ADC, ROR, NOP, JMP, ADC, ROR, RRA,
-/* 7 */ BVS, ADC, NOP, RRA, NOP, ADC, ROR, RRA, SEI, ADC, NOP, RRA, NOP, ADC, ROR, RRA,
-/* 8 */ NOP, STA, NOP, SAX, STY, STA, STX, SAX, DEY, NOP, TXA, NOP, STY, STA, STX, SAX,
-/* 9 */ BCC, STA, NOP, NOP, STY, STA, STX, SAX, TYA, STA, TXS, NOP, NOP, STA, NOP, NOP,
-/* A */ LDY, LDA, LDX, LAX, LDY, LDA, LDX, LAX, TAY, LDA, TAX, NOP, LDY, LDA, LDX, LAX,
-/* B */ BCS, LDA, NOP, LAX, LDY, LDA, LDX, LAX, CLV, LDA, TSX, LAX, LDY, LDA, LDX, LAX,
-/* C */ CPY, CMP, NOP, DCP, CPY, CMP, DEC, DCP, INY, CMP, DEX, NOP, CPY, CMP, DEC, DCP,
-/* D */ BNE, CMP, NOP, DCP, NOP, CMP, DEC, DCP, CLD, CMP, NOP, DCP, NOP, CMP, DEC, DCP,
-/* E */ CPX, SBC, NOP, ISB, CPX, SBC, INC, ISB, INX, SBC, NOP, SBC, CPX, SBC, INC, ISB,
-/* F */ BEQ, SBC, NOP, ISB, NOP, SBC, INC, ISB, SED, SBC, NOP, ISB, NOP, SBC, INC, ISB
+/*    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | A   | B  | C  | D  | E  | F  |*/
+/* 0 */ BRK, ORA, NOP, SLO, NOP, ORA, ASL, SLO, PHP, ORA, ASLA, NOP, NOP, ORA, ASL, SLO,
+/* 1 */ BPL, ORA, NOP, SLO, NOP, ORA, ASL, SLO, CLC, ORA, NOP,  SLO, NOP, ORA, ASL, SLO,
+/* 2 */ JSR, AND, NOP, RLA, BIT, AND, ROL, RLA, PLP, AND, ROLA, NOP, BIT, AND, ROL, RLA,
+/* 3 */ BMI, AND, NOP, RLA, NOP, AND, ROL, RLA, SEC, AND, NOP,  RLA, NOP, AND, ROL, RLA,
+/* 4 */ RTI, EOR, NOP, SRE, NOP, EOR, LSR, SRE, PHA, EOR, LSRA, NOP, JMP, EOR, LSR, SRE,
+/* 5 */ BVC, EOR, NOP, SRE, NOP, EOR, LSR, SRE, CLI, EOR, NOP,  SRE, NOP, EOR, LSR, SRE,
+/* 6 */ RTS, ADC, NOP, RRA, NOP, ADC, ROR, RRA, PLA, ADC, RORA, NOP, JMP, ADC, ROR, RRA,
+/* 7 */ BVS, ADC, NOP, RRA, NOP, ADC, ROR, RRA, SEI, ADC, NOP,  RRA, NOP, ADC, ROR, RRA,
+/* 8 */ NOP, STA, NOP, SAX, STY, STA, STX, SAX, DEY, NOP, TXA,  NOP, STY, STA, STX, SAX,
+/* 9 */ BCC, STA, NOP, NOP, STY, STA, STX, SAX, TYA, STA, TXS,  NOP, NOP, STA, NOP, NOP,
+/* A */ LDY, LDA, LDX, LAX, LDY, LDA, LDX, LAX, TAY, LDA, TAX,  NOP, LDY, LDA, LDX, LAX,
+/* B */ BCS, LDA, NOP, LAX, LDY, LDA, LDX, LAX, CLV, LDA, TSX,  LAX, LDY, LDA, LDX, LAX,
+/* C */ CPY, CMP, NOP, DCP, CPY, CMP, DEC, DCP, INY, CMP, DEX,  NOP, CPY, CMP, DEC, DCP,
+/* D */ BNE, CMP, NOP, DCP, NOP, CMP, DEC, DCP, CLD, CMP, NOP,  DCP, NOP, CMP, DEC, DCP,
+/* E */ CPX, SBC, NOP, ISB, CPX, SBC, INC, ISB, INX, SBC, NOP,  SBC, CPX, SBC, INC, ISB,
+/* F */ BEQ, SBC, NOP, ISB, NOP, SBC, INC, ISB, SED, SBC, NOP,  ISB, NOP, SBC, INC, ISB
 };
 
 /* Clock cycle table; indexed by opcode */
