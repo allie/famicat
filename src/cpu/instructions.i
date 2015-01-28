@@ -1,5 +1,4 @@
 /* TODO: Get memory value of operand */
-/* --- CPU instruction functions --- */
 
 /* Add memory to the accumulator with carry */
 /* N Z C V */
@@ -102,21 +101,21 @@ static void BRK() {
 /* Branch on overflow clear */
 /* No flags changed */
 static void BVC() {
-    if(!get_flag(FLAG_V))
-        cpu.PC += cpu.operand;
+    if(!GET_FLAG(FLAG_V))
+        cpu.PC += cpu.operaddr;
 }
 
 /* Branch on overflow set */
 /* No flags changed */
 static void BVS() {
-    if(get_flag(FLAG_V))
-        cpu.PC += cpu.operand;
+    if(GET_FLAG(FLAG_V))
+        cpu.PC += cpu.operaddr;
 }
 
 /* Clear carry flag */
 /* C=0 */
 static void CLC() {
-    clear_flag(FLAG_C);
+    CLEAR_FLAG(FLAG_C);
 }
 
 /* Clear decimal mode (NOT USED IN NES MODE) */
@@ -130,40 +129,40 @@ static void CLD() {
 /* Clear interrupt disable flag */
 /* I=0 */
 static void CLI() {
-    clear_flag(FLAG_I);
+    CLEAR_FLAG(FLAG_I);
 }
 
 /* Clear overflow flag */
 /* V=0 */
 static void CLV() {
-    clear_flag(FLAG_V);
+    CLEAR_FLAG(FLAG_V);
 }
 
 /* Compare memory and accumulator */
 /* N Z C */
 static void CMP() {
-    uint8_t result = cpu.A - cpu.operand;
-    calculate_carry(cpu.A >= cpu.operand);
-    calcluate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.A - cpu.operaddr;
+    CALC_C(cpu.A >= cpu.operaddr);
+    CALC_Z(result);
+    CALC_N(result);
 }
 
 /* Compare memory and index X */
 /* N Z C */
 static void CPX() {
-    uint8_t result = cpu.X - cpu.operand;
-    calculate_carry(cpu.X >= cpu.operand);
-    calcluate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.X - cpu.operaddr;
+    CALC_C(cpu.X >= cpu.operaddr);
+    CALC_Z(result);
+    CALC_N(result);
 }
 
 /* Compare memory and index Y */
 /* N Z C */
 static void CPY() {
-    uint8_t result = cpu.Y - cpu.operand;
-    calculate_carry(cpu.Y >= cpu.operand);
-    calcluate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.Y - cpu.operaddr;
+    CALC_C(cpu.Y >= cpu.operaddr);
+    CALC_Z(result);
+    CALC_N(result);
 }
 
 /* DEC memory and CMP result with accumulator (UNOFFICIAL) */
@@ -175,63 +174,63 @@ static void DCP() {
 /* Decrement memory by one */
 /* N Z */
 static void DEC() {
-    uint8_t result = cpu.operand - 1;
-    calculate_zero(result);
-    calculate_sign(result);
-    cpu.operand = result;
+    BYTE result = cpu.operaddr - 1;
+    CALC_Z(result);
+    CALC_N(result);
+    cpu.operaddr = result;
 }
 
 /* Decrement index X by one */
 /* N Z */
 static void DEX() {
-    uint8_t result = cpu.X - 1;
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.X - 1;
+    CALC_Z(result);
+    CALC_N(result);
     cpu.X = result;
 }
 
 /* Decrement index Y by one */
 /* N Z */
 static void DEY() {
-    uint8_t result = cpu.Y - 1;
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.Y - 1;
+    CALC_Z(result);
+    CALC_N(result);
     cpu.Y = result;
 }
 
 /* XOR memory with accumulator */
 /* N Z */
 static void EOR() {
-    uint8_t result = cpu.A ^ cpu.operand;
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.A ^ cpu.operaddr;
+    CALC_Z(result);
+    CALC_N(result);
     cpu.A = result;
 }
 
 /* Increment memory by one */
 /* N Z */
 static void INC() {
-    uint8_t result = cpu.operand + 1;
-    calculate_zero(result);
-    calculate_sign(result);
-    cpu.operand = result;
+    BYTE result = cpu.operaddr + 1;
+    CALC_Z(result);
+    CALC_N(result);
+    cpu.operaddr = result;
 }
 
 /* Increment index X by one */
 /* N Z */
 static void INX() {
-    uint8_t result = cpu.X + 1;
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.X + 1;
+    CALC_Z(result);
+    CALC_N(result);
     cpu.X = result;
 }
 
 /* Increment index Y by one */
 /* N Z */
 static void INY() {
-    uint8_t result = cpu.Y + 1;
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.Y + 1;
+    CALC_Z(result);
+    CALC_N(result);
     cpu.Y = result;
 }
 
@@ -244,7 +243,7 @@ static void ISB() {
 /* Jump to new location */
 /* No flags changed */
 static void JMP() {
-    cpu.PC = cpu.operand;
+    cpu.PC = cpu.operaddr;
 }
 
 /* Jump to new location saving return address */
@@ -262,45 +261,45 @@ static void LAX() {
 /* Load accumulator with memory */
 /* N Z */
 static void LDA() {
-    cpu.A = cpu.operand;
-    calculate_zero(cpu.A);
-    calculate_sign(cpu.A);
+    cpu.A = cpu.operaddr;
+    CALC_Z(cpu.A);
+    CALC_N(cpu.A);
 }
 
 /* Load index X with memory */
 /* N Z */
 static void LDX() {
-    cpu.X = cpu.operand;
-    calculate_zero(cpu.X);
-    calculate_sign(cpu.X);
+    cpu.X = cpu.operaddr;
+    CALC_Z(cpu.X);
+    CALC_N(cpu.X);
 }
 
 /* Load index Y with memory */
 /* N Z */
 static void LDY() {
-    cpu.Y = cpu.operand;
-    calculate_zero(cpu.Y);
-    calculate_sign(cpu.Y);
+    cpu.Y = cpu.operaddr;
+    CALC_Z(cpu.Y);
+    CALC_N(cpu.Y);
 }
 
 /* Shift accumulator right one bit */
 /* N=0 Z C */
 static void LSR_A() {
-    uint8_t result = cpu.A >> 1;
-    calculate_carry(cpu.A & 1);
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.A >> 1;
+    CALC_C(cpu.A & 1);
+    CALC_Z(result);
+    CALC_N(result);
     cpu.A = result;
 }
 
 /* Shift memory right one bit */
 /* N=0 Z C */
 static void LSR_M() {
-    uint8_t result = cpu.operand >> 1;
-    calculate_carry(cpu.operand & 1);
-    calculate_zero(result);
-    calculate_sign(result);
-    cpu.operand = result;
+    BYTE result = cpu.operaddr >> 1;
+    CALC_C(cpu.operaddr & 1);
+    CALC_Z(result);
+    CALC_N(result);
+    cpu.operaddr = result;
 }
 
 /* No operation */
@@ -312,9 +311,9 @@ static void NOP() {
 /* OR memory with accumulator */
 /* N Z */
 static void ORA() {
-    uint8_t result = cpu.A | cpu.operand;
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.A | cpu.operaddr;
+    CALC_Z(result);
+    CALC_N(result);
     cpu.A = result;
 }
 
@@ -351,45 +350,45 @@ static void RLA() {
 /* Rotate accumulator left one bit */
 /* N Z C */
 static void ROL_A() {
-    uint8_t result = cpu.A << 1;
-    result &= get_flag(FLAG_C);
-    calculate_carry(cpu.A & 0x80);
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.A << 1;
+    result &= GET_FLAG(FLAG_C);
+    CALC_C(cpu.A & 0x80);
+    CALC_Z(result);
+    CALC_N(result);
     cpu.A = result;
 }
 
 /* Rotate memory left one bit */
 /* N Z C */
 static void ROL_M() {
-    uint8_t result = cpu.operand << 1;
-    result &= get_flag(FLAG_C);
-    calculate_carry(cpu.operand & 0x80);
-    calculate_zero(result);
-    calculate_sign(result);
-    cpu.operand = result;
+    BYTE result = cpu.operaddr << 1;
+    result &= GET_FLAG(FLAG_C);
+    CALC_C(cpu.operaddr & 0x80);
+    CALC_Z(result);
+    CALC_N(result);
+    cpu.operaddr = result;
 }
 
 /* Rotate accumulator right one bit */
 /* N Z C */
 static void ROR_A() {
-    uint8_t result = cpu.A >> 1;
-    result &= (get_flag(FLAG_C) && 0x80);
-    calculate_carry(cpu.A & 1);
-    calculate_zero(result);
-    calculate_sign(result);
+    BYTE result = cpu.A >> 1;
+    result &= (GET_FLAG(FLAG_C) & 0x80);
+    CALC_C(cpu.A & 1);
+    CALC_Z(result);
+    CALC_N(result);
     cpu.A = result;
 }
 
 /* Rotate memory right one bit */
 /* N Z C */
 static void ROR_M() {
-    uint8_t result = cpu.operand >> 1;
-    result &= (get_flag(FLAG_C) && 0x80);
-    calculate_carry(cpu.operand & 1);
-    calculate_zero(result);
-    calculate_sign(result);
-    cpu.operand = result;
+    BYTE result = cpu.operaddr >> 1;
+    result &= (GET_FLAG(FLAG_C) & 0x80);
+    CALC_C(cpu.operaddr & 1);
+    CALC_Z(result);
+    CALC_N(result);
+    cpu.operaddr = result;
 }
 
 /* ROR memory and ADC result with accumulator (UNOFFICIAL) */
