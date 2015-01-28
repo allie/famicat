@@ -51,6 +51,11 @@ CPU cpu;
 /* --- CPU instruction functions --- */
 #include "instructions.i"
 
+/* --- Disassembler --- */
+#ifdef DEBUG_MODE
+#include "disassembler.i"
+#endif
+
 /* Addressing mode function pointer table for fetching operands; indexed by opcode */
 static void (*addr[256])() = {
 /*    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | A  | B  | C  | D  | E  | F  |*/
