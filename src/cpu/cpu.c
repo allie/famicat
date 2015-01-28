@@ -124,6 +124,10 @@ void CPU_Step() {
 	/* Fetch opcode */
 	cpu.opcode = Memory_ReadByte(cpu.PC++);
 
+#ifdef DEBUG_MODE
+	disassemble1();
+#endif
+
 	/* Some stuff */
 
 	/* Fetch operand */
@@ -134,4 +138,8 @@ void CPU_Step() {
 
 	/* Add cycles to the total cycle count */
 	cpu.cycles += cycles[cpu.opcode];
+
+#ifdef DEBUG_MODE
+	disassemble2();
+#endif
 }

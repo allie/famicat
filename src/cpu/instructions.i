@@ -165,12 +165,6 @@ static void CPY() {
     CALC_N(result);
 }
 
-/* DEC memory and CMP result with accumulator (UNOFFICIAL) */
-/* ? */
-static void DCP() {
-    /* TODO */
-}
-
 /* Decrement memory by one */
 /* N Z */
 static void DEC() {
@@ -234,12 +228,6 @@ static void INY() {
     cpu.Y = result;
 }
 
-/* INC memory and SBC result from the accumulator (UNOFFICIAL) */
-/* ? */
-static void ISB() {
-    /* TODO */
-}
-
 /* Jump to new location */
 /* No flags changed */
 static void JMP() {
@@ -249,12 +237,6 @@ static void JMP() {
 /* Jump to new location saving return address */
 /* No flags changed */
 static void JSR() {
-    /* TODO */
-}
-
-/* Load accumulator and index X with memory (UNOFFICIAL) */
-/* ? */
-static void LAX() {
     /* TODO */
 }
 
@@ -284,7 +266,7 @@ static void LDY() {
 
 /* Shift accumulator right one bit */
 /* N=0 Z C */
-static void LSR_A() {
+static void LSRA() {
     BYTE result = cpu.A >> 1;
     CALC_C(cpu.A & 1);
     CALC_Z(result);
@@ -294,7 +276,7 @@ static void LSR_A() {
 
 /* Shift memory right one bit */
 /* N=0 Z C */
-static void LSR_M() {
+static void LSR() {
     BYTE result = cpu.operaddr >> 1;
     CALC_C(cpu.operaddr & 1);
     CALC_Z(result);
@@ -341,15 +323,9 @@ static void PLP() {
     /* TODO */
 }
 
-/* ROL memory and AND result with accumulator (UNOFFICIAL) */
-/* ? */
-static void RLA() {
-    /* TODO */
-}
-
 /* Rotate accumulator left one bit */
 /* N Z C */
-static void ROL_A() {
+static void ROLA() {
     BYTE result = cpu.A << 1;
     result &= GET_FLAG(FLAG_C);
     CALC_C(cpu.A & 0x80);
@@ -360,7 +336,7 @@ static void ROL_A() {
 
 /* Rotate memory left one bit */
 /* N Z C */
-static void ROL_M() {
+static void ROL() {
     BYTE result = cpu.operaddr << 1;
     result &= GET_FLAG(FLAG_C);
     CALC_C(cpu.operaddr & 0x80);
@@ -371,7 +347,7 @@ static void ROL_M() {
 
 /* Rotate accumulator right one bit */
 /* N Z C */
-static void ROR_A() {
+static void RORA() {
     BYTE result = cpu.A >> 1;
     result &= (GET_FLAG(FLAG_C) & 0x80);
     CALC_C(cpu.A & 1);
@@ -382,19 +358,13 @@ static void ROR_A() {
 
 /* Rotate memory right one bit */
 /* N Z C */
-static void ROR_M() {
+static void ROR() {
     BYTE result = cpu.operaddr >> 1;
     result &= (GET_FLAG(FLAG_C) & 0x80);
     CALC_C(cpu.operaddr & 1);
     CALC_Z(result);
     CALC_N(result);
     cpu.operaddr = result;
-}
-
-/* ROR memory and ADC result with accumulator (UNOFFICIAL) */
-/* ? */
-static void RRA() {
-    /* TODO */
 }
 
 /* Return from interrupt */
@@ -406,12 +376,6 @@ static void RTI() {
 /* Return from subroutine */
 /* No flags changed */
 static void RTS() {
-    /* TODO */
-}
-
-/* AND accumulator with index X and store the result in memory (UNOFFICIAL) */
-/* No flags changed */
-static void SAX() {
     /* TODO */
 }
 
@@ -439,18 +403,6 @@ static void SED() {
 /* I=1 */
 static void SEI() {
     SET_FLAG(FLAG_I);
-}
-
-/* ASL memory and OR result with accumulator (UNOFFICIAL) */
-/* ? */
-static void SLO() {
-    /* TODO */
-}
-
-/* LSR memory and XOR result with accumulator (UNOFFICIAL) */
-/* ? */
-static void SRE() {
-    /* TODO */
 }
 
 /* Store accumulator in memory */
@@ -516,3 +468,66 @@ static void TYA() {
     CALC_Z(cpu.A);
     CALC_N(cpu.A);
 }
+
+#ifdef UNOFFICIAL_MODE
+
+/* DEC memory and CMP result with accumulator (UNOFFICIAL) */
+/* ? */
+static void DCP() {
+    /* TODO */
+}
+
+/* INC memory and SBC result from the accumulator (UNOFFICIAL) */
+/* ? */
+static void ISB() {
+    /* TODO */
+}
+
+/* Load accumulator and index X with memory (UNOFFICIAL) */
+/* ? */
+static void LAX() {
+    /* TODO */
+}
+
+/* ROL memory and AND result with accumulator (UNOFFICIAL) */
+/* ? */
+static void RLA() {
+    /* TODO */
+}
+
+/* ROR memory and ADC result with accumulator (UNOFFICIAL) */
+/* ? */
+static void RRA() {
+    /* TODO */
+}
+
+/* AND accumulator with index X and store the result in memory (UNOFFICIAL) */
+/* No flags changed */
+static void SAX() {
+    /* TODO */
+}
+
+/* ASL memory and OR result with accumulator (UNOFFICIAL) */
+/* ? */
+static void SLO() {
+    /* TODO */
+}
+
+/* LSR memory and XOR result with accumulator (UNOFFICIAL) */
+/* ? */
+static void SRE() {
+    /* TODO */
+}
+
+#else
+
+#define DCP NOP
+#define ISB NOP
+#define LAX NOP
+#define RLA NOP
+#define RRA NOP
+#define SAX NOP
+#define SLO NOP
+#define SRE NOP
+
+#endif
