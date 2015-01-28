@@ -9,47 +9,41 @@ CPU cpu;
 #define CLEAR_FLAG(f) cpu.S &= ~(f)
 #define GET_FLAG(f) cpu.S & f
 
-void calculate_carry(BYTE cond) {
-	if (cond)
-		SET_FLAG(FLAG_C);
-	else
-		CLEAR_FLAG(FLAG_C);
-}
+#define CALC_C(c) \
+	if ((c)) \
+		SET_FLAG(FLAG_C);\
+	else \
+		CLEAR_FLAG(FLAG_C)
 
-void calculate_zero(BYTE num) {
-	if(num == 0)
-		SET_FLAG(FLAG_Z);
-	else
-		CLEAR_FLAG(FLAG_Z);
-}
+#define CALC_Z(n) \
+	if((n) == 0) \
+		SET_FLAG(FLAG_Z); \
+	else \
+		CLEAR_FLAG(FLAG_Z)
 
-void calculate_interrupt(BYTE cond) {
-	if (cond)
-		SET_FLAG(FLAG_I);
-	else
-		CLEAR_FLAG(FLAG_I);
-}
+#define CALC_I(c) \
+	if ((c)) \
+		SET_FLAG(FLAG_I); \
+	else \
+		CLEAR_FLAG(FLAG_I)
 
-void calculate_break(BYTE cond) {
-	if (cond)
-		SET_FLAG(FLAG_B);
-	else
-		CLEAR_FLAG(FLAG_B);
-}
+#define CALC_B(c) \
+	if ((c)) \
+		SET_FLAG(FLAG_B); \
+	else \
+		CLEAR_FLAG(FLAG_B)
 
-void calculate_overflow(BYTE cond) {
-	if (cond)
-		SET_FLAG(FLAG_V);
-	else
+#define CALC_V(c) \
+	if ((c)) \
+		SET_FLAG(FLAG_V); \
+	else \
 		CLEAR_FLAG(FLAG_V);
-}
 
-void calculate_sign(BYTE num) {
-	if (num & 0x80)
-		SET_FLAG(FLAG_N);
-	else
-		CLEAR_FLAG(FLAG_N);
-}
+#define CALC_N(n) \
+	if ((n) & 0x80) \
+		SET_FLAG(FLAG_N); \
+	else \
+		CLEAR_FLAG(FLAG_N)
 
 /* --- Addressing mode functions --- */
 #include "addressing.i"

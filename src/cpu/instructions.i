@@ -4,40 +4,40 @@
 /* Add memory to the accumulator with carry */
 /* N Z C V */
 static void ADC() {
-    uint8_t result = cpu.A + cpu.operaddr + GET_FLAG(FLAG_C);
-    calculate_zero(result);
-    calculate_carry(result > 0xff);
-    calculate_sign(result);
-    calculate_overflow(~(cpu.A ^ cpu.operaddr) & (cpu.A ^ result) & 0x80);
+    BYTE result = cpu.A + cpu.operaddr + GET_FLAG(FLAG_C);
+    CALC_Z(result);
+    CALC_C(result > 0xff);
+    CALC_N(result);
+    CALC_V(~(cpu.A ^ cpu.operaddr) & (cpu.A ^ result) & 0x80);
     cpu.A = result;
 }
 
 /* AND memory with accumulator */
 /* N Z */
 static void AND() {
-    uint8_t result = cpu.A & cpu.operaddr;
-    calculate_sign(result);
-    calculate_zero(result);
+    BYTE result = cpu.A & cpu.operaddr;
+    CALC_N(result);
+    CALC_Z(result);
     cpu.A = result;
 }
 
 /* Shift accumulator left one bit */
 /* N Z C */
 static void ASLA() {
-    uint8_t result = cpu.A << 1;
-    calculate_carry(cpu.A & 0x80);
-    calculate_sign(result);
-    calculate_zero(result);
+    BYTE result = cpu.A << 1;
+    CALC_C(cpu.A & 0x80);
+    CALC_N(result);
+    CALC_Z(result);
     cpu.A = result;
 }
 
 /* Shift memory left one bit */
 /* N Z C */
 static void ASL() {
-    uint8_t result = cpu.operaddr << 1;
-    calculate_carry(cpu.operaddr & 0x80);
-    calculate_sign(result);
-    calculate_zero(result);
+    BYTE result = cpu.operaddr << 1;
+    CALC_C(cpu.operaddr & 0x80);
+    CALC_N(result);
+    CALC_Z(result);
     cpu.operaddr = result;
 }
 
@@ -65,10 +65,10 @@ static void BEQ() {
 /* Test bits in memory with accumulator */
 /* N=M7 Z V=M6 */
 static void BIT() {
-    uint8_t result = cpu.A & cpu.operaddr;
-    calculate_sign(cpu.operaddr);
-    calculate_zero(result);
-    calculate_overflow(cpu.operaddr & FLAG_V);
+    BYTE result = cpu.A & cpu.operaddr;
+    CALC_N(cpu.operaddr);
+    CALC_Z(result);
+    CALC_V(cpu.operaddr & FLAG_V);
 }
 
 /* Branch on result minus (N set) */
@@ -177,32 +177,32 @@ static void STY() {
 /* N Z */
 static void TAX() {
     cpu.X = cpu.A;
-    calculate_zero(cpu.X);
-    calculate_sign(cpu.X);
+    CALC_Z(cpu.X);
+    CALC_N(cpu.X);
 }
 
 /* Transfer accumulator to index Y */
 /* N Z */
 static void TAY() {
     cpu.Y = cpu.A;
-    calculate_zero(cpu.Y);
-    calculate_sign(cpu.Y);
+    CALC_Z(cpu.Y);
+    CALC_N(cpu.Y);
 }
 
 /* Transfer stack pointer to index X */
 /* N Z */
 static void TSX() {
     cpu.X = cpu.SP;
-    calculate_zero(cpu.X);
-    calculate_sign(cpu.X);
+    CALC_Z(cpu.X);
+    CALC_N(cpu.X);
 }
 
 /* Transfer index X to accumulator */
 /* N Z */
 static void TXA() {
     cpu.A = cpu.X;
-    calculate_zero(cpu.A);
-    calculate_sign(cpu.A);
+    CALC_Z(cpu.A);
+    CALC_N(cpu.A);
 }
 
 /* Transfer index X to stack pointer */
@@ -215,6 +215,6 @@ static void TXS() {
 /* N Z */
 static void TYA() {
     cpu.A = cpu.Y;
-    calculate_zero(cpu.A);
-    calculate_sign(cpu.A);
+    CALC_Z(cpu.A);
+    CALC_N(cpu.A);
 }
