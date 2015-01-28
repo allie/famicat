@@ -3,11 +3,6 @@
 
 #include "../common.h"
 
-/* Empty macros for noting "implied" and "accumulator" addressing modes;
-   these modes do not need any implementation */
-#define IMP
-#define ACC
-
 /* Status flag bitmasks */
 #define FLAG_C 0x01
 #define FLAG_Z 0x02

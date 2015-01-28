@@ -9,24 +9,17 @@ void CPU_Reset() {
 
 }
 
-/* Execute one CPU instruction */
-void CPU_Step() {
-	/* Fetch opcode */
-	cpu.opcode = Memory_ReadByte(cpu.PC++);
+/* --- Addressing mode functions --- */
 
-	/* Some stuff */
-
-	/* Fetch operand */
-	(*addr[cpu.opcode])();
-
-	/* Execute CPU instruction */
-	(*instr[cpu.opcode])();
-
-	/* Add cycles to the total cycle count */
-	cpu.cycles += cycles[cpu.opcode];
+/* Implied */
+static void IMP() {
+	/* Leave empty */
 }
 
-/* --- Addressing mode functions --- */
+/* Accumulator */
+static void ACC() {
+	/* Leave empty */
+}
 
 /* Immediate */
 static void IMM() {
@@ -486,3 +479,20 @@ static const uint32_t cycles[256] = {
 /* E */ 2,   6,   2,   8,   3,   3,   5,   5,   2,   2,   2,   2,   4,   4,   6,   6,
 /* F */ 2,   5,   2,   8,   4,   4,   6,   6,   2,   4,   2,   7,   4,   4,   7,   7
 };
+
+/* Execute one CPU instruction */
+void CPU_Step() {
+	/* Fetch opcode */
+	cpu.opcode = Memory_ReadByte(cpu.PC++);
+
+	/* Some stuff */
+
+	/* Fetch operand */
+	(*addr[cpu.opcode])();
+
+	/* Execute CPU instruction */
+	(*instr[cpu.opcode])();
+
+	/* Add cycles to the total cycle count */
+	cpu.cycles += cycles[cpu.opcode];
+}
