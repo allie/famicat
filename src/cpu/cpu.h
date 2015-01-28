@@ -15,7 +15,7 @@
 #define FLAG_D 0x08
 #define FLAG_B 0x10
 #define FLAG_V 0x40
-#define FLAG_S 0x80
+#define FLAG_N 0x80
 
 /* Stack base address */
 #define STACK_ADDR 0x100
