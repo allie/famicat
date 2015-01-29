@@ -1,0 +1,50 @@
+@font-face{
+    font-family: 'Avant Garde';
+    src: url("ITCAvantGardePro-Md.otf") format("opentype");
+}
+@font-feature-values Avant Garde{
+    @
+}
+body{
+    font-family: 'Avant Garde';
+    background-color: #fffdd2;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    font-size: 300px;
+}
+header{
+    background-color: #9d0000;
+    width: 100%;
+    height: 200px;
+    margin: 0px;
+    padding: 0px;
+    font-family: 'Avant Garde';
+    font-size: 100px;
+    color: #dbc361;
+    text-align: center;
+}
+main{
+    text-align: center;
+}
+#underline{
+    width: 100%;
+    height: 15px;
+    background-color: #dbc361;
+}
+#slantyRight{
+    -moz-font-feature-settings:"ss01" 1;
+    -moz-font-feature-settings:"ss01=1";
+    -ms-font-feature-settings:"ss01" 1;
+    -o-font-feature-settings:"ss01" 1;
+    -webkit-font-feature-settings:"ss01" 1;
+    font-feature-settings:"ss01" 1;
+}
+#slantyLeft{
+    -moz-font-feature-settings:"ss02" 1;
+    -moz-font-feature-settings:"ss02=1";
+    -ms-font-feature-settings:"ss02" 1;
+    -o-font-feature-settings:"ss02" 1;
+    -webkit-font-feature-settings:"ss02" 1;
+    font-feature-settings:"ss02" 1;
+}
