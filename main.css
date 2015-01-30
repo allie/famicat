@@ -13,7 +13,7 @@ body{
 header{
     background-color: #9d0000;
     width: 100%;
-    height: 200px;
+    height: 130px;
     margin: 0px;
     padding: 0px;
     font-family: 'Avant Garde';
@@ -27,8 +27,9 @@ main{
 }
 #underline{
     width: 100%;
-    height: 15px;
+    height: 10px;
     background-color: #dbc361;
+    margin-top: -24px;
 }
 #slanty{
     -moz-font-feature-settings:"ss01" 1;
