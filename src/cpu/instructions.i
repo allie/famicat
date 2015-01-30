@@ -1,8 +1,19 @@
 #define ADD_OFFSET() \
+    WORD oldPC = cpu.PC; \
     if(cpu.operand & 0x80) \
         cpu.PC -= (cpu.operand & 0x7f); \
     else \
-        cpu.PC += (cpu.operand & 0x7f);
+        cpu.PC += (cpu.operand & 0x7f); \
+    if((cpu.PC & 0xff00) != (oldPC & 0xff00)) \
+        cpu.cycles += 2; \
+    else \
+        cpu.cycles++;
+
+#define PAGE_PENALTY() \
+    if(((mode == ABX) && (cpu.X > (cpu.operaddr & 0x00ff))) || \
+        ((mode == ABY || mode == IDY) && (cpu.Y > (cpu.operaddr & 0x00ff)))) \
+            cpu.cycles++;
+
 
 /* Add memory to the accumulator with carry */
 /* N Z C V */
@@ -13,6 +24,7 @@ static void ADC() {
     CALC_N(result);
     CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
     cpu.A = (BYTE)(result & 0x00FF);
+    PAGE_PENALTY();
 }
 
 /* AND memory with accumulator */
@@ -22,6 +34,7 @@ static void AND() {
     CALC_N(result);
     CALC_Z(result);
     cpu.A = result;
+    PAGE_PENALTY();
 }
 
 /* Shift accumulator left one bit */
@@ -161,6 +174,7 @@ static void CMP() {
     CALC_C(cpu.A >= cpu.operand);
     CALC_Z(result);
     CALC_N(result);
+    PAGE_PENALTY();
 }
 
 /* Compare memory and index X */
@@ -215,6 +229,7 @@ static void EOR() {
     CALC_Z(result);
     CALC_N(result);
     cpu.A = result;
+    PAGE_PENALTY();
 }
 
 /* Increment memory by one */
@@ -263,6 +278,7 @@ static void LDA() {
     cpu.A = cpu.operand;
     CALC_Z(cpu.A);
     CALC_N(cpu.A);
+    PAGE_PENALTY();
 }
 
 /* Load index X with memory */
@@ -271,6 +287,7 @@ static void LDX() {
     cpu.X = cpu.operand;
     CALC_Z(cpu.X);
     CALC_N(cpu.X);
+    PAGE_PENALTY();
 }
 
 /* Load index Y with memory */
@@ -279,6 +296,7 @@ static void LDY() {
     cpu.Y = cpu.operand;
     CALC_Z(cpu.Y);
     CALC_N(cpu.Y);
+    PAGE_PENALTY();
 }
 
 /* Shift accumulator right one bit */
@@ -314,6 +332,7 @@ static void ORA() {
     CALC_Z(result);
     CALC_N(result);
     cpu.A = result;
+    PAGE_PENALTY();
 }
 
 /* Push accumulator onto stack */
@@ -409,6 +428,7 @@ static void SBC() { /* TODO: See how right this is */
     CALC_C(result > 0xff);
     CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
     cpu.A = result;
+    PAGE_PENALTY();
 }
 
 /* Set carry flag */

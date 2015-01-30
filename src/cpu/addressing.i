@@ -15,22 +15,22 @@ static void IMM() {
 
 /* Zero-page */
 static void ZPG() {
-	cpu.operaddr = (WORD)Memory_ReadByte((WORD)cpu.PC++);
+	cpu.operaddr = (WORD)Memory_ReadByte(cpu.PC++);
 }
 
 /* Zero-page, X */
 static void ZPX() {
-
+	cpu.operaddr = (WORD)Memory_ReadByte(cpu.PC++) + cpu.X;
 }
 
 /* Zero-page, Y */
 static void ZPY() {
-
+	cpu.operaddr = (WORD)Memory_ReadByte(cpu.PC++) + cpu.Y;
 }
 
 /* Relative */
 static void REL() {
-	cpu.operaddr = Memory_ReadByte(cpu.PC);
+	cpu.operaddr = cpu.PC++;
 }
 
 /* Absolute */
@@ -41,13 +41,13 @@ static void ABS() {
 
 /* Absolute, X */
 static void ABX() {
-	cpu.operaddr = cpu.X + Memory_ReadWord(cpu.PC);
+	cpu.operaddr = Memory_ReadWord(cpu.PC) + cpu.X;
 	cpu.PC += 2;
 }
 
 /* Absolute, Y */
 static void ABY() {
-	cpu.operaddr = cpu.Y + Memory_ReadWord(cpu.PC);
+	cpu.operaddr = Memory_ReadWord(cpu.PC) + cpu.Y;
 	cpu.PC += 2;
 }
 
