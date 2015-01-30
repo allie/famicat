@@ -6,13 +6,13 @@
 
 /* Add memory to the accumulator with carry */
 /* N Z C V */
-static void ADC() { /* TODO: See how right this is */
-    BYTE result = cpu.A + cpu.operand + GET_FLAG(FLAG_C);
+static void ADC() {
+    WORD result = (WORD)cpu.A + cpu.operand + GET_FLAG(FLAG_C);
     CALC_Z(result);
-    CALC_C(result > 0xff);
+    CALC_C(result & 0xFF00);
     CALC_N(result);
     CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
-    cpu.A = result;
+    cpu.A = (BYTE)(result & 0x00FF);
 }
 
 /* AND memory with accumulator */
@@ -71,10 +71,10 @@ static void BEQ() {
 /* Test bits in memory with accumulator */
 /* N=M7 Z V=M6 */
 static void BIT() {
-    BYTE result = cpu.A & cpu.operaddr;
-    CALC_N(cpu.operaddr);
+    BYTE result = cpu.A & cpu.operand;
+    CALC_N(cpu.operand);
     CALC_Z(result);
-    CALC_V(cpu.operaddr & FLAG_V);
+    CALC_V(cpu.operand & FLAG_V);
 }
 
 /* Branch on result minus (N set) */
@@ -104,10 +104,12 @@ static void BPL() {
 /* Force break */
 /* I=1 */
 static void BRK() {
+    SET_FLAG(FLAG_B);
+    cpu.PC++;
     pushw(cpu.PC);
     pushb(cpu.S);
-    cpu.PC = 0xFFFE;
-    SET_FLAG(FLAG_B);
+    SET_FLAG(FLAG_I);
+    cpu.PC = Memory_ReadWord(0xFFFE);
 }
 
 /* Branch on overflow clear */
@@ -135,9 +137,9 @@ static void CLC() {
 /* Clear decimal mode (NOT USED IN NES MODE) */
 /* D=0 */
 static void CLD() {
-    #ifdef NES_MODE
-        /* TODO */
-    #endif
+#ifdef NES_MODE
+    CLEAR_FLAG(FLAG_D);
+#endif
 }
 
 /* Clear interrupt disable flag */
@@ -323,19 +325,21 @@ static void PHA() {
 /* Push processor status onto stack */
 /* No flags changed */
 static void PHP() {
-    pushb(cpu.S);
+    pushb(cpu.S | FLAG_B);
 }
 
 /* Pull accumulator from stack */
-/* No flags changed */
+/* N Z */
 static void PLA() {
     cpu.A = pullb();
+    CALC_Z(cpu.A);
+    CALC_N(cpu.A);
 }
 
 /* Pull processor status from stack */
 /* N Z C I D V = pull from stack */
 static void PLP() {
-    cpu.S = pullb();
+    cpu.S = pullb() | 0x20;
 }
 
 /* Rotate accumulator left one bit */
@@ -393,7 +397,7 @@ static void RTI() {
 /* No flags changed */
 static void RTS() {
     cpu.PC = pullw();
-    /* TODO: Determine if program counter must be incremented or decremented */
+    cpu.PC++;
 }
 
 /* Subtract memory from accumulator with borrow */
@@ -417,7 +421,7 @@ static void SEC() {
 /* D=1 */
 static void SED() {
 #ifdef NES_MODE
-    /* TODO */
+    SET_FLAG(FLAG_D);
 #endif
 }
 
