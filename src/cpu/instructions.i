@@ -1,4 +1,8 @@
-/* TODO: Get memory value of operand */
+#define ADD_OFFSET() \
+    if(cpu.operand & 0x80) \
+        cpu.PC -= (cpu.operand & 0x7f); \
+    else \
+        cpu.PC += (cpu.operand & 0x7f);
 
 /* Add memory to the accumulator with carry */
 /* N Z C V */
@@ -43,22 +47,25 @@ static void ASL() {
 /* Branch on carry clear */
 /* No flags changed */
 static void BCC() {
-    if(!GET_FLAG(FLAG_C))
-        cpu.PC += cpu.operaddr; /* No idea if this is actually what that means */
+    if(!GET_FLAG(FLAG_C)){
+        ADD_OFFSET();
+    }
 }
 
 /* Branch on carry set */
 /* No flags changed */
 static void BCS() {
-    if(GET_FLAG(FLAG_C))
-        cpu.PC += cpu.operaddr;
+    if(GET_FLAG(FLAG_C)){
+        ADD_OFFSET();
+    }
 }
 
 /* Branch on result zero (zero set) */
 /* No flags changed */
 static void BEQ() {
-    if(GET_FLAG(FLAG_Z))
-        cpu.PC += cpu.operaddr;
+    if(GET_FLAG(FLAG_Z)){
+        ADD_OFFSET();
+    }
 }
 
 /* Test bits in memory with accumulator */
@@ -73,22 +80,25 @@ static void BIT() {
 /* Branch on result minus (N set) */
 /* No flags changed */
 static void BMI() {
-    if(GET_FLAG(FLAG_N))
-        cpu.PC += cpu.operaddr;
+    if(GET_FLAG(FLAG_N)){
+        ADD_OFFSET();
+    }
 }
 
 /* Branch on result not zero (zero cleared) */
 /* No flags changed */
 static void BNE() {
-    if(!GET_FLAG(FLAG_Z))
-        cpu.PC += cpu.operaddr;
+    if(!GET_FLAG(FLAG_Z)){
+        ADD_OFFSET();
+    }
 }
 
 /* Branch on result plus (N cleared) */
 /* No flags changed */
 static void BPL() {
-    if(!GET_FLAG(FLAG_N))
-        cpu.PC += cpu.operaddr;
+    if(!GET_FLAG(FLAG_N)){
+        ADD_OFFSET();
+    }
 }
 
 /* Force break */
@@ -103,15 +113,17 @@ static void BRK() {
 /* Branch on overflow clear */
 /* No flags changed */
 static void BVC() {
-    if(!GET_FLAG(FLAG_V))
-        cpu.PC += cpu.operaddr;
+    if(!GET_FLAG(FLAG_V)){
+        ADD_OFFSET();
+    }
 }
 
 /* Branch on overflow set */
 /* No flags changed */
 static void BVS() {
-    if(GET_FLAG(FLAG_V))
-        cpu.PC += cpu.operaddr;
+    if(GET_FLAG(FLAG_V)){
+        ADD_OFFSET();
+    }
 }
 
 /* Clear carry flag */

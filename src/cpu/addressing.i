@@ -30,8 +30,7 @@ static void ZPY() {
 
 /* Relative */
 static void REL() {
-	BYTE num = Memory_ReadByte(cpu.PC++);
-
+	cpu.operaddr = Memory_ReadByte(cpu.PC);
 }
 
 /* Absolute */
