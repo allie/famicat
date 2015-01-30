@@ -422,12 +422,12 @@ static void RTS() {
 /* Subtract memory from accumulator with borrow */
 /* N Z C V */
 static void SBC() { /* TODO: See how right this is */
-    BYTE result = cpu.A - cpu.operand - (1-GET_FLAG(FLAG_C));
+    WORD result = (WORD)cpu.A - cpu.operand - (1-GET_FLAG(FLAG_C));
     CALC_Z(result);
     CALC_N(result);
-    CALC_C(result > 0xff);
+    CALC_C(result & 0xFF00);
     CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
-    cpu.A = result;
+    cpu.A = (BYTE)(result & 0x00FF);
     PAGE_PENALTY();
 }
 
