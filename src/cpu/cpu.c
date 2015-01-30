@@ -55,11 +55,11 @@ static void pushw(WORD val) {
 }
 
 static BYTE pullb() {
-
+	return 0;
 }
 
 static WORD pullw() {
-	
+	return 0;
 }
 
 /* --- Addressing mode functions --- */
@@ -152,8 +152,13 @@ void CPU_Step() {
 
 	/* Some stuff */
 
-	/* Fetch operand */
-	(*addr[cpu.opcode])();
+	/* Fetch operand address */
+	void (*mode)() = addr[cpu.opcode];
+	(*mode)();
+
+	/* Cache operand value */
+	if (mode != ACC && mode != IMP)
+		cpu.operand = Memory_ReadByte(cpu.operaddr);
 
 	/* Execute CPU instruction */
 	(*instr[cpu.opcode])();
