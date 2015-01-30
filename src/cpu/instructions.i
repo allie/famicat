@@ -421,7 +421,7 @@ static void RTS() {
 
 /* Subtract memory from accumulator with borrow */
 /* N Z C V */
-static void SBC() { /* TODO: See how right this is */
+static void SBC() {
     WORD result = (WORD)cpu.A - cpu.operand - (1-GET_FLAG(FLAG_C));
     CALC_Z(result);
     CALC_N(result);
