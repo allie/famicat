@@ -7,19 +7,22 @@ CPU cpu;
 
 /* --- Stack operations --- */
 static void pushb(BYTE val) {
-
+	Memory_WriteByte((STACK_ADDR | cpu.SP--), val);
 }
 
 static void pushw(WORD val) {
-
+	Memory_WriteWord((STACK_ADDR | cpu.SP), val);
+	cpu.SP -= 2;
 }
 
 static BYTE pullb() {
-	return 0;
+	return Memory_ReadByte((STACK_ADDR | cpu.SP++));
 }
 
 static WORD pullw() {
-	return 0;
+	WORD result = Memory_ReadWord((STACK_ADDR | cpu.SP));
+	cpu.SP += 2;
+	return result;
 }
 
 static void (*mode)();
