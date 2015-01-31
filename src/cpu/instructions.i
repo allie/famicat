@@ -307,7 +307,7 @@ static void JMP() {
 /* Jump to new location saving return address */
 /* No flags changed */
 static void JSR() {
-    pushw(cpu.PC-1);
+    pushw((cpu.PC-1));
     cpu.PC = cpu.operaddr;
 }
 

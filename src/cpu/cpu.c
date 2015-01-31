@@ -11,8 +11,8 @@ static void pushb(BYTE val) {
 }
 
 static void pushw(WORD val) {
-	Memory_WriteWord((STACK_ADDR | cpu.SP), val);
-	cpu.SP -= 2;
+	pushb((val >> 8) & 0xFF);
+	pushb(val & 0xFF);
 }
 
 static BYTE pullb() {
@@ -20,8 +20,7 @@ static BYTE pullb() {
 }
 
 static WORD pullw() {
-	cpu.SP += 2;
-	return Memory_ReadWord((STACK_ADDR | cpu.SP));
+	return (WORD)pullb() | ((WORD)pullb() << 8);
 }
 
 static void (*mode)();
