@@ -47,8 +47,8 @@ void disassemble1() {
 void disassemble2() {
 	printf("$%04X %02X | A:%02X X:%02X Y:%02X SP:%02X | C:%d Z:%d I:%d D:%d V:%d B:%d N:%d\n",
 		cpu.operaddr, cpu.operand, cpu.A, cpu.X, cpu.Y, cpu.SP,
-		GET_FLAG(FLAG_C), GET_FLAG(FLAG_Z), GET_FLAG(FLAG_I), GET_FLAG(FLAG_D),
-		GET_FLAG(FLAG_V), GET_FLAG(FLAG_B), GET_FLAG(FLAG_N));
+		GET_FLAG(FLAG_C) != 0, GET_FLAG(FLAG_Z) != 0, GET_FLAG(FLAG_I) != 0, GET_FLAG(FLAG_D) != 0,
+		GET_FLAG(FLAG_V) != 0, GET_FLAG(FLAG_B) != 0, GET_FLAG(FLAG_N) != 0);
 }
 
 void disassemble3() {
