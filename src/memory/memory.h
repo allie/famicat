@@ -10,8 +10,6 @@ typedef struct {
 	BYTE* apureg;
 	BYTE* exprom;
 	BYTE* sram;
-	BYTE* prg1;
-	BYTE* prg2;
 } Memory;
 
 void Memory_Reset();

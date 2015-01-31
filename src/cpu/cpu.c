@@ -4,7 +4,6 @@
 
 /* Global CPU */
 CPU cpu;
-extern Memory memory;
 
 /* --- Stack operations --- */
 static void pushb(BYTE val) {
@@ -104,7 +103,6 @@ static const DWORD cycles[256] = {
 
 /* Re-initialize all CPU registers and variables */
 void CPU_Reset() {
-	printf("%lu\n", sizeof(memory.ram));
 	cpu.PC = Memory_ReadWord(0xFFFC);
 	cpu.A = 0;
 	cpu.X = 0;

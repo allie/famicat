@@ -1,6 +1,8 @@
 #include "memory.h"
+#include "../cart/cart.h"
 
 Memory memory;
+extern Cart cart;
 
 void Memory_Reset() {
 	if (memory.ram != NULL)
@@ -18,19 +20,11 @@ void Memory_Reset() {
 	if (memory.sram != NULL)
 		free(memory.sram);
 
-	if (memory.prg1 != NULL)
-		free(memory.prg1);
-
-	if (memory.prg2 != NULL)
-		free(memory.prg2);
-
 	memory.ram = calloc(0x800, sizeof(BYTE));
 	memory.ppureg = calloc(8, sizeof(BYTE));
 	memory.apureg = calloc(0x20, sizeof(BYTE));
 	memory.exprom = calloc(0x1FDF, sizeof(BYTE));
 	memory.sram = calloc(0x2000, sizeof(BYTE));
-	memory.prg1 = calloc(0x4000, sizeof(BYTE));
-	memory.prg2 = calloc(0x4000, sizeof(BYTE));
 }
 
 static BYTE* decodecpu(WORD addr) {
@@ -55,12 +49,13 @@ static BYTE* decodecpu(WORD addr) {
 		return memory.sram + (addr - 0x6000);
 
 	// PRG-ROM 1
+	// TODO: MAPPERS!!!
 	else if (addr >= 0x8000 && addr < 0xC000)
-		return memory.prg1 + (addr - 0x8000);
+		return cart.prg + (addr - 0x8000);
 
 	// PRG-ROM 2
 	else if (addr >= 0xC000 && addr <= 0xFFFF)
-		return memory.prg2 + (addr - 0xC000);
+		return cart.prg + (addr - 0x8000);
 
 	return 0;
 }
