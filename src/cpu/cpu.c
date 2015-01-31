@@ -103,7 +103,7 @@ static const DWORD cycles[256] = {
 
 /* Re-initialize all CPU registers and variables */
 void CPU_Reset() {
-	cpu.PC = Memory_ReadWord(0xFFFC);
+	cpu.PC = 0xC000;
 	cpu.A = 0;
 	cpu.X = 0;
 	cpu.Y = 0;

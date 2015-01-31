@@ -54,8 +54,12 @@ static BYTE* decodecpu(WORD addr) {
 		return cart.prg + (addr - 0x8000);
 
 	// PRG-ROM 2
-	else if (addr >= 0xC000 && addr <= 0xFFFF)
-		return cart.prg + (addr - 0x8000);
+	else if (addr >= 0xC000 && addr <= 0xFFFF) {
+		if (cart.mapper == 0 && cart.prgromsize == 1)
+			return cart.prg + (addr - 0xC000);
+		else
+			return cart.prg + (addr - 0x8000);
+	}
 
 	return 0;
 }
