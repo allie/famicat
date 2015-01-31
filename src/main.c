@@ -5,6 +5,9 @@
 int main() {
 	Cart_Load("test.nes");
 	CPU_Reset();
-	for (int i = 0; i < 100; i++)
+	int i;
+	for (i = 0; i < 10000; i++)
 		CPU_Step();
+
+	return 0;
 }
