@@ -22,5 +22,6 @@ void Memory_WriteByte(WORD addr, BYTE val) {
 }
 
 void Memory_WriteWord(WORD addr, WORD val) {
-
+	Memory_WriteByte(addr, (BYTE)(val & 0x00FF));
+	Memory_WriteByte(addr + 1, (BYTE)((val & 0xFF00) >> 8));
 }
