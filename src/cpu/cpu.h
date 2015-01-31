@@ -29,6 +29,6 @@ typedef struct {
 } CPU;
 
 void CPU_Reset();
-void *mode;
+void CPU_Step();
 
 #endif

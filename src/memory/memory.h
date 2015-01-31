@@ -4,9 +4,10 @@
 #include "../common.h"
 
 typedef struct {
-	/* Some stuff */
+	BYTE* ram;
 } Memory;
 
+void Memory_Reset();
 BYTE Memory_ReadByte(WORD addr);
 WORD Memory_ReadWord(WORD addr);
 void Memory_WriteByte(WORD addr, BYTE val);

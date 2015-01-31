@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99 -c -Wall -D_POSIX_C_SOURCE=200112L -g
+CFLAGS=-std=gnu99 -rdynamic -c -Wall -D_POSIX_C_SOURCE=200112L -DDEBUG_MODE -g
 LDFLAGS=-lm
 SOURCES=$(shell find src -name "*.c")
 OBJECTS=$(SOURCES:.c=.o)

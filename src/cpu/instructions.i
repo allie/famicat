@@ -1,3 +1,43 @@
+#define SET_FLAG(f) cpu.S |= f
+#define CLEAR_FLAG(f) cpu.S &= ~(f)
+#define GET_FLAG(f) cpu.S & f
+
+#define CALC_C(c) \
+    if ((c)) \
+        SET_FLAG(FLAG_C); \
+    else \
+        CLEAR_FLAG(FLAG_C);
+
+#define CALC_Z(n) \
+    if((n) == 0) \
+        SET_FLAG(FLAG_Z); \
+    else \
+        CLEAR_FLAG(FLAG_Z);
+
+#define CALC_I(c) \
+    if ((c)) \
+        SET_FLAG(FLAG_I); \
+    else \
+        CLEAR_FLAG(FLAG_I);
+
+#define CALC_B(c) \
+    if ((c)) \
+        SET_FLAG(FLAG_B); \
+    else \
+        CLEAR_FLAG(FLAG_B);
+
+#define CALC_V(c) \
+    if ((c)) \
+        SET_FLAG(FLAG_V); \
+    else \
+        CLEAR_FLAG(FLAG_V);
+
+#define CALC_N(n) \
+    if ((n) & 0x80) \
+        SET_FLAG(FLAG_N); \
+    else \
+        CLEAR_FLAG(FLAG_N);
+
 #define ADD_OFFSET() \
     WORD oldPC = cpu.PC; \
     if(cpu.operand & 0x80) \
@@ -13,7 +53,6 @@
     if(((mode == ABX) && (cpu.X > (cpu.operaddr & 0x00ff))) || \
         ((mode == ABY || mode == IDY) && (cpu.Y > (cpu.operaddr & 0x00ff)))) \
             cpu.cycles++;
-
 
 /* Add memory to the accumulator with carry */
 /* N Z C V */

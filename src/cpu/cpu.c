@@ -1,49 +1,9 @@
 #include "cpu.h"
 #include "../memory/memory.h"
+#include <execinfo.h>
 
 /* Global CPU */
 CPU cpu;
-
-/* --- Flag manipulation macros/functions --- */
-#define SET_FLAG(f) cpu.S |= f
-#define CLEAR_FLAG(f) cpu.S &= ~(f)
-#define GET_FLAG(f) cpu.S & f
-
-#define CALC_C(c) \
-	if ((c)) \
-		SET_FLAG(FLAG_C); \
-	else \
-		CLEAR_FLAG(FLAG_C);
-
-#define CALC_Z(n) \
-	if((n) == 0) \
-		SET_FLAG(FLAG_Z); \
-	else \
-		CLEAR_FLAG(FLAG_Z);
-
-#define CALC_I(c) \
-	if ((c)) \
-		SET_FLAG(FLAG_I); \
-	else \
-		CLEAR_FLAG(FLAG_I);
-
-#define CALC_B(c) \
-	if ((c)) \
-		SET_FLAG(FLAG_B); \
-	else \
-		CLEAR_FLAG(FLAG_B);
-
-#define CALC_V(c) \
-	if ((c)) \
-		SET_FLAG(FLAG_V); \
-	else \
-		CLEAR_FLAG(FLAG_V);
-
-#define CALC_N(n) \
-	if ((n) & 0x80) \
-		SET_FLAG(FLAG_N); \
-	else \
-		CLEAR_FLAG(FLAG_N);
 
 /* --- Stack operations --- */
 static void pushb(BYTE val) {
@@ -61,6 +21,8 @@ static BYTE pullb() {
 static WORD pullw() {
 	return 0;
 }
+
+static void (*mode)();
 
 /* --- Addressing mode functions --- */
 #include "addressing.i"
@@ -138,7 +100,12 @@ static const DWORD cycles[256] = {
 
 /* Re-initialize all CPU registers and variables */
 void CPU_Reset() {
-
+	cpu.PC = 0x1000;
+	cpu.A = 0;
+	cpu.X = 0;
+	cpu.Y = 0;
+	cpu.SP = 0xFD;
+	cpu.S |= 0x20;
 }
 
 /* Execute one CPU instruction */
@@ -153,7 +120,7 @@ void CPU_Step() {
 	/* Some stuff */
 
 	/* Fetch operand address */
-	void (*mode)() = addr[cpu.opcode];
+	mode = addr[cpu.opcode];
 	(*mode)();
 
 	/* Cache operand value */
