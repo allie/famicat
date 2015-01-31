@@ -12,7 +12,7 @@ void Cart_Load(const char* file) {
 	long int size = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);
 
-	fread(memory.ram, sizeof(BYTE), sizeof(size) / sizeof(BYTE), fp);
+	fread(memory.ram, sizeof(BYTE), size / sizeof(BYTE), fp);
 
 	fclose(fp);
 }

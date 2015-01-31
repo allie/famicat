@@ -3,8 +3,8 @@
 #include "cart/cart.h"
 
 int main() {
+	Cart_Load("test.nes");
 	CPU_Reset();
-	Cart_Load("test.bin");
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 100; i++)
 		CPU_Step();
 }

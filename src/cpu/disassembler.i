@@ -39,10 +39,20 @@ static const char* instrsymbols[256] = {
 };
 
 void disassemble1() {
-	printf("%04X %02X %s %s ", cpu.PC - 1, cpu.opcode, instrsymbols[cpu.opcode], addrsymbols[cpu.opcode]);
+	printf("$%04X | %02X | %s %s | ",
+		cpu.PC - 1, cpu.opcode, instrsymbols[cpu.opcode],
+		addrsymbols[cpu.opcode]);
 }
 
 void disassemble2() {
+	printf("$%04X %02X | A:%02X X:%02X Y:%02X SP:%02X | C:%d Z:%d I:%d D:%d V:%d B:%d N:%d\n",
+		cpu.operaddr, cpu.operand, cpu.A, cpu.X, cpu.Y, cpu.SP,
+		GET_FLAG(FLAG_C), GET_FLAG(FLAG_Z), GET_FLAG(FLAG_I), GET_FLAG(FLAG_D),
+		GET_FLAG(FLAG_V), GET_FLAG(FLAG_B), GET_FLAG(FLAG_N));
+}
+
+void disassemble3() {
+	/* TODO: specific stuff for each opcode
 	switch (cpu.opcode) {
 		case 0x00: printf("\n"); break;
 		case 0x01: printf("\n"); break;
@@ -119,4 +129,5 @@ void disassemble2() {
 		case 0x7E: printf("\n"); break;
 		default: printf("\n"); break;
 	}
+	*/
 }
