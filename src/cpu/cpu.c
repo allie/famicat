@@ -4,6 +4,7 @@
 
 /* Global CPU */
 CPU cpu;
+extern Memory memory;
 
 /* --- Stack operations --- */
 static void pushb(BYTE val) {
@@ -100,7 +101,8 @@ static const DWORD cycles[256] = {
 
 /* Re-initialize all CPU registers and variables */
 void CPU_Reset() {
-	cpu.PC = 0x1000;
+	printf("%lu\n", sizeof(memory.ram));
+	cpu.PC = Memory_ReadWord(0xFFFC);
 	cpu.A = 0;
 	cpu.X = 0;
 	cpu.Y = 0;
@@ -126,6 +128,12 @@ void CPU_Step() {
 	/* Cache operand value */
 	if (mode != ACC && mode != IMP)
 		cpu.operand = Memory_ReadByte(cpu.operaddr);
+	else
+		cpu.operand = 0;
+
+#ifdef DEBUG_MODE
+	disassemble2();
+#endif
 
 	/* Execute CPU instruction */
 	(*instr[cpu.opcode])();
@@ -134,6 +142,6 @@ void CPU_Step() {
 	cpu.cycles += cycles[cpu.opcode];
 
 #ifdef DEBUG_MODE
-	disassemble2();
+	disassemble3();
 #endif
 }
