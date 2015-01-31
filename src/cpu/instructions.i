@@ -1,6 +1,6 @@
 #define SET_FLAG(f) cpu.S |= f
 #define CLEAR_FLAG(f) cpu.S &= ~(f)
-#define GET_FLAG(f) cpu.S & f
+#define GET_FLAG(f) (cpu.S & f)
 
 #define CALC_C(c) \
     if ((c)) \
