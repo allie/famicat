@@ -4,7 +4,14 @@
 #include "../common.h"
 
 typedef struct {
+	// CPU memory map
 	BYTE* ram;
+	BYTE* ppureg;
+	BYTE* apureg;
+	BYTE* exprom;
+	BYTE* sram;
+	BYTE* prg1;
+	BYTE* prg2;
 } Memory;
 
 void Memory_Reset();
