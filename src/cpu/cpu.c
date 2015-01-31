@@ -16,13 +16,12 @@ static void pushw(WORD val) {
 }
 
 static BYTE pullb() {
-	return Memory_ReadByte((STACK_ADDR | cpu.SP++));
+	return Memory_ReadByte((STACK_ADDR | ++cpu.SP));
 }
 
 static WORD pullw() {
-	WORD result = Memory_ReadWord((STACK_ADDR | cpu.SP));
 	cpu.SP += 2;
-	return result;
+	return Memory_ReadWord((STACK_ADDR | cpu.SP));
 }
 
 static void (*mode)();
