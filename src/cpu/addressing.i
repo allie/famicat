@@ -22,13 +22,13 @@ static void ZPG() {
 /* Zero-page, X */
 static void ZPX() {
 	cpu.indoperand = Memory_ReadByte(cpu.PC++);
-	cpu.operaddr = (WORD)cpu.indoperand + cpu.X;
+	cpu.operaddr = ((WORD)cpu.indoperand + (WORD)cpu.X) & 0xFF;
 }
 
 /* Zero-page, Y */
 static void ZPY() {
 	cpu.indoperand = Memory_ReadByte(cpu.PC++);
-	cpu.operaddr = (WORD)cpu.indoperand + cpu.Y;
+	cpu.operaddr = ((WORD)cpu.indoperand + (WORD)cpu.Y) & 0xFF;
 }
 
 /* Relative */
