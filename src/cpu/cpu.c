@@ -106,7 +106,7 @@ void CPU_Reset() {
 	cpu.X = 0;
 	cpu.Y = 0;
 	cpu.SP = 0xFD;
-	cpu.S |= 0x20;
+	cpu.S = 0x24;
 	cpu.opcode = 0;
 	cpu.operaddr = 0;
 	cpu.indoperaddr = 0;

@@ -58,7 +58,7 @@
 /* N Z C V */
 static void ADC() {
     WORD result = (WORD)cpu.A + cpu.operand + GET_FLAG(FLAG_C);
-    CALC_Z(result);
+    CALC_Z(result & 0x00FF);
     CALC_C(result & 0xFF00);
     CALC_N(result);
     CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
@@ -189,9 +189,7 @@ static void CLC() {
 /* Clear decimal mode (NOT USED IN NES MODE) */
 /* D=0 */
 static void CLD() {
-#ifdef NES_MODE
     CLEAR_FLAG(FLAG_D);
-#endif
 }
 
 /* Clear interrupt disable flag */
@@ -397,14 +395,14 @@ static void PLA() {
 /* Pull processor status from stack */
 /* N Z C I D V = pull from stack */
 static void PLP() {
-    cpu.S = pullb() | 0x20;
+    cpu.S = (pullb() & ~(FLAG_B)) | 0x20;
 }
 
 /* Rotate accumulator left one bit */
 /* N Z C */
 static void ROLA() {
     BYTE result = cpu.A << 1;
-    result &= GET_FLAG(FLAG_C);
+    result |= GET_FLAG(FLAG_C);
     CALC_C(cpu.A & 0x80);
     CALC_Z(result);
     CALC_N(result);
@@ -415,7 +413,7 @@ static void ROLA() {
 /* N Z C */
 static void ROL() {
     BYTE result = cpu.operand << 1;
-    result &= GET_FLAG(FLAG_C);
+    result |= GET_FLAG(FLAG_C);
     CALC_C(cpu.operand & 0x80);
     CALC_Z(result);
     CALC_N(result);
@@ -426,7 +424,8 @@ static void ROL() {
 /* N Z C */
 static void RORA() {
     BYTE result = cpu.A >> 1;
-    result &= (GET_FLAG(FLAG_C) & 0x80);
+    if(GET_FLAG(FLAG_C))
+        result |= 0x80;
     CALC_C(cpu.A & 1);
     CALC_Z(result);
     CALC_N(result);
@@ -437,7 +436,8 @@ static void RORA() {
 /* N Z C */
 static void ROR() {
     BYTE result = cpu.operand >> 1;
-    result &= (GET_FLAG(FLAG_C) & 0x80);
+    if(GET_FLAG(FLAG_C))
+        result |= 0x80;
     CALC_C(cpu.operand & 1);
     CALC_Z(result);
     CALC_N(result);
@@ -447,7 +447,7 @@ static void ROR() {
 /* Return from interrupt */
 /* N Z C I D V = pull from stack */
 static void RTI() {
-    cpu.S = pullb();
+    cpu.S = (pullb() & ~(FLAG_B)) | 0x20;
     cpu.PC = pullw();
 }
 
@@ -462,10 +462,10 @@ static void RTS() {
 /* N Z C V */
 static void SBC() {
     WORD result = (WORD)cpu.A - cpu.operand - (1-GET_FLAG(FLAG_C));
-    CALC_Z(result);
+    CALC_Z(result & 0x00FF);
     CALC_N(result);
-    CALC_C(result & 0xFF00);
-    CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
+    CALC_C(!(result & 0xFF00));
+    CALC_V((cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
     cpu.A = (BYTE)(result & 0x00FF);
     PAGE_PENALTY();
 }
@@ -479,9 +479,7 @@ static void SEC() {
 /* Set decimal mode (NOT USED IN NES MODE) */
 /* D=1 */
 static void SED() {
-#ifdef NES_MODE
     SET_FLAG(FLAG_D);
-#endif
 }
 
 /* Set interrupt disable flag */
