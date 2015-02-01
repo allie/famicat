@@ -596,7 +596,6 @@ static void SAX() {
     STA();
     STX();
     Memory_WriteByte(cpu.operaddr, (cpu.A & cpu.X));
-    PAGE_PENALTY();
 }
 
 /* ASL memory and OR result with accumulator (UNOFFICIAL) */
@@ -605,7 +604,6 @@ static void SLO() {
     ASL();
     cpu.operand = Memory_ReadByte(cpu.operaddr);
     ORA();
-
 }
 
 /* LSR memory and XOR result with accumulator (UNOFFICIAL) */
