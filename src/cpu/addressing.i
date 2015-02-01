@@ -78,6 +78,10 @@ static void IDX() {
 /* (Indirect), Y */
 static void IDY() {
 	cpu.indoperand = Memory_ReadByte(cpu.PC++);
-	cpu.indoperaddr = Memory_ReadWord((0x00ff & cpu.indoperand));
+	if (cpu.indoperand == 0xFF){
+		cpu.indoperaddr = (WORD)Memory_ReadByte(0xFF) | ((WORD)Memory_ReadByte(0) << 8);
+	}
+	else
+		cpu.indoperaddr = Memory_ReadWord((0x00ff & cpu.indoperand));
 	cpu.operaddr = cpu.indoperaddr + cpu.Y;
 }
