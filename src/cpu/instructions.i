@@ -58,7 +58,7 @@
 /* N Z C V */
 static void ADC() {
     WORD result = (WORD)cpu.A + cpu.operand + GET_FLAG(FLAG_C);
-    CALC_Z(result);
+    CALC_Z(result & 0x00FF);
     CALC_C(result & 0xFF00);
     CALC_N(result);
     CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
@@ -460,10 +460,10 @@ static void RTS() {
 /* N Z C V */
 static void SBC() {
     WORD result = (WORD)cpu.A - cpu.operand - (1-GET_FLAG(FLAG_C));
-    CALC_Z(result);
+    CALC_Z(result & 0x00FF);
     CALC_N(result);
-    CALC_C(result & 0xFF00);
-    CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
+    CALC_C(!(result & 0xFF00));
+    CALC_V((cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
     cpu.A = (BYTE)(result & 0x00FF);
     PAGE_PENALTY();
 }
