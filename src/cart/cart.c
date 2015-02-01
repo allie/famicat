@@ -78,6 +78,7 @@ void Cart_Load(const char* file) {
 
 	free(buf);
 
+/*
 	printf("PRG ROM SIZE: %d\n", cart.prgromsize);
 	printf("CHR ROM SIZE: %d\n", cart.chrromsize);
 	printf("PRG RAM SIZE: %d\n", cart.prgramsize);
@@ -91,6 +92,7 @@ void Cart_Load(const char* file) {
 	printf("USES PLAYCHOICE: %s\n", (cart.playchoice) ? "YES" : "NO");
 	printf("NES 2.0: %s\n", (cart.nes2) ? "YES" : "NO");
 	printf("TV MODE: %s\n", (cart.tvmode) ? "PAL" : "NTSC");
+*/
 }
 
 void Cart_Unload() {

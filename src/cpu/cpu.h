@@ -25,6 +25,8 @@ typedef struct {
 	BYTE opcode;
 	WORD operaddr;
 	BYTE operand;
+	WORD indoperaddr;
+	BYTE indoperand;
 	DWORD cycles;
 } CPU;
 

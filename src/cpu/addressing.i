@@ -15,17 +15,20 @@ static void IMM() {
 
 /* Zero-page */
 static void ZPG() {
-	cpu.operaddr = (WORD)Memory_ReadByte(cpu.PC++);
+	cpu.indoperand = Memory_ReadByte(cpu.PC++);
+	cpu.operaddr = (WORD)cpu.indoperand;
 }
 
 /* Zero-page, X */
 static void ZPX() {
-	cpu.operaddr = (WORD)Memory_ReadByte(cpu.PC++) + cpu.X;
+	cpu.indoperand = Memory_ReadByte(cpu.PC++);
+	cpu.operaddr = (WORD)cpu.indoperand + cpu.X;
 }
 
 /* Zero-page, Y */
 static void ZPY() {
-	cpu.operaddr = (WORD)Memory_ReadByte(cpu.PC++) + cpu.Y;
+	cpu.indoperand = Memory_ReadByte(cpu.PC++);
+	cpu.operaddr = (WORD)cpu.indoperand + cpu.Y;
 }
 
 /* Relative */
@@ -41,30 +44,35 @@ static void ABS() {
 
 /* Absolute, X */
 static void ABX() {
-	cpu.operaddr = Memory_ReadWord(cpu.PC) + cpu.X;
+	cpu.indoperaddr = Memory_ReadWord(cpu.PC);
+	cpu.operaddr = cpu.indoperaddr + cpu.X;
 	cpu.PC += 2;
 }
 
 /* Absolute, Y */
 static void ABY() {
-	cpu.operaddr = Memory_ReadWord(cpu.PC) + cpu.Y;
+	cpu.indoperaddr = Memory_ReadWord(cpu.PC);
+	cpu.operaddr = cpu.indoperaddr + cpu.Y;
 	cpu.PC += 2;
 }
 
 /* Indirect */
 static void IND() {
- 	cpu.operaddr = Memory_ReadWord(Memory_ReadWord(cpu.PC));
+	cpu.indoperaddr = Memory_ReadWord(cpu.PC);
+ 	cpu.operaddr = Memory_ReadWord(cpu.indoperaddr);
 	cpu.PC += 2;
 	/* TODO: Implement bug */
 }
 
 /* (Indirect, X) */
 static void IDX() {
-	cpu.operaddr = Memory_ReadWord(((0x00ff & (cpu.X + Memory_ReadByte(cpu.PC++)))));
+	cpu.indoperand = Memory_ReadByte(cpu.PC++);
+	cpu.operaddr = Memory_ReadWord(((0x00ff & ((WORD)cpu.X + cpu.indoperand))));
 }
 
 /* (Indirect), Y */
 static void IDY() {
-	cpu.operaddr = Memory_ReadWord((0x00ff & Memory_ReadByte(cpu.PC++)));
-	cpu.operaddr += cpu.Y;
+	cpu.indoperand = Memory_ReadByte(cpu.PC++);
+	cpu.indoperaddr = Memory_ReadWord((0x00ff & cpu.indoperand));
+	cpu.operaddr = cpu.indoperaddr + cpu.Y;
 }

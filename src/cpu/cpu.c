@@ -107,6 +107,12 @@ void CPU_Reset() {
 	cpu.Y = 0;
 	cpu.SP = 0xFD;
 	cpu.S |= 0x20;
+	cpu.opcode = 0;
+	cpu.operaddr = 0;
+	cpu.indoperaddr = 0;
+	cpu.indoperand = 0;
+	cpu.operand = 0;
+	cpu.cycles = 0;
 }
 
 /* Execute one CPU instruction */
@@ -139,8 +145,4 @@ void CPU_Step() {
 
 	/* Add cycles to the total cycle count */
 	cpu.cycles += cycles[cpu.opcode];
-
-#ifdef DEBUG_MODE
-	disassemble3();
-#endif
 }
