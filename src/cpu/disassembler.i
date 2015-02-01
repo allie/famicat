@@ -109,5 +109,5 @@ void disassemble2() {
 	else
 		printf("OOPS");
 
-	printf("A:%02X X:%02X Y:%02X P:%3d SP:%02X\n", cpu.A, cpu.X, cpu.Y, cpu.S, cpu.SP);
+	printf("A:%02X X:%02X Y:%02X P:%02X SP:%02X\n", cpu.A, cpu.X, cpu.Y, cpu.S, cpu.SP);
 }
