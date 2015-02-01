@@ -40,11 +40,8 @@
 
 #define ADD_OFFSET() \
     WORD oldPC = cpu.PC; \
-    if(cpu.operand & 0x80) \
-        cpu.PC -= (cpu.operand & 0x7f); \
-    else \
-        cpu.PC += (cpu.operand & 0x7f); \
-    if((cpu.PC & 0xff00) != (oldPC & 0xff00)) \
+    cpu.PC += (int8_t)cpu.operand; \
+    if ((cpu.PC & 0xff00) != (oldPC & 0xff00)) \
         cpu.cycles += 2; \
     else \
         cpu.cycles++;
@@ -62,7 +59,7 @@ static void ADC() {
     CALC_C(result & 0xFF00);
     CALC_N(result);
     CALC_V(~(cpu.A ^ cpu.operand) & (cpu.A ^ result) & 0x80);
-    cpu.A = (BYTE)(result & 0x00FF);
+    cpu.A = (BYTE)(result & 0x00ff0FF);
     PAGE_PENALTY();
 }
 

@@ -5001,53 +5001,53 @@ C6B2  48        PHA                             A:FF X:97 Y:4E P:A5 SP:F9
 C6B3  A9 AA     LDA #$AA                        A:FF X:97 Y:4E P:A5 SP:F8
 C6B5  D0 05     BNE $C6BC                       A:AA X:97 Y:4E P:A5 SP:F8
 C6BC  28        PLP                             A:AA X:97 Y:4E P:A5 SP:F8
-C6BD  04 A9    *NOP $A9 = 00                    A:AA X:97 Y:4E P:EF SP:F9
-C6BF  44 A9    *NOP $A9 = 00                    A:AA X:97 Y:4E P:EF SP:F9
-C6C1  64 A9    *NOP $A9 = 00                    A:AA X:97 Y:4E P:EF SP:F9
+C6BD  04 A9     NOP $A9 = 00                    A:AA X:97 Y:4E P:EF SP:F9
+C6BF  44 A9     NOP $A9 = 00                    A:AA X:97 Y:4E P:EF SP:F9
+C6C1  64 A9     NOP $A9 = 00                    A:AA X:97 Y:4E P:EF SP:F9
 C6C3  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F9
 C6C4  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F9
 C6C5  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F9
 C6C6  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F9
 C6C7  08        PHP                             A:AA X:97 Y:4E P:EF SP:F9
 C6C8  48        PHA                             A:AA X:97 Y:4E P:EF SP:F8
-C6C9  0C A9 A9 *NOP $A9A9 = A9                  A:AA X:97 Y:4E P:EF SP:F7
+C6C9  0C A9 A9  NOP $A9A9 = A9                  A:AA X:97 Y:4E P:EF SP:F7
 C6CC  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F7
 C6CD  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F7
 C6CE  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F7
 C6CF  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F7
 C6D0  08        PHP                             A:AA X:97 Y:4E P:EF SP:F7
 C6D1  48        PHA                             A:AA X:97 Y:4E P:EF SP:F6
-C6D2  14 A9    *NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
-C6D4  34 A9    *NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
-C6D6  54 A9    *NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
-C6D8  74 A9    *NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
-C6DA  D4 A9    *NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
-C6DC  F4 A9    *NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
+C6D2  14 A9     NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
+C6D4  34 A9     NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
+C6D6  54 A9     NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
+C6D8  74 A9     NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
+C6DA  D4 A9     NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
+C6DC  F4 A9     NOP $A9,X @ 40 = 00             A:AA X:97 Y:4E P:EF SP:F5
 C6DE  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F5
 C6DF  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F5
 C6E0  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F5
 C6E1  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F5
 C6E2  08        PHP                             A:AA X:97 Y:4E P:EF SP:F5
 C6E3  48        PHA                             A:AA X:97 Y:4E P:EF SP:F4
-C6E4  1A       *NOP                             A:AA X:97 Y:4E P:EF SP:F3
-C6E5  3A       *NOP                             A:AA X:97 Y:4E P:EF SP:F3
-C6E6  5A       *NOP                             A:AA X:97 Y:4E P:EF SP:F3
-C6E7  7A       *NOP                             A:AA X:97 Y:4E P:EF SP:F3
-C6E8  DA       *NOP                             A:AA X:97 Y:4E P:EF SP:F3
-C6E9  FA       *NOP                             A:AA X:97 Y:4E P:EF SP:F3
-C6EA  80 89    *NOP #$89                        A:AA X:97 Y:4E P:EF SP:F3
+C6E4  1A        NOP                             A:AA X:97 Y:4E P:EF SP:F3
+C6E5  3A        NOP                             A:AA X:97 Y:4E P:EF SP:F3
+C6E6  5A        NOP                             A:AA X:97 Y:4E P:EF SP:F3
+C6E7  7A        NOP                             A:AA X:97 Y:4E P:EF SP:F3
+C6E8  DA        NOP                             A:AA X:97 Y:4E P:EF SP:F3
+C6E9  FA        NOP                             A:AA X:97 Y:4E P:EF SP:F3
+C6EA  80 89     NOP #$89                        A:AA X:97 Y:4E P:EF SP:F3
 C6EC  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F3
 C6ED  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F3
 C6EE  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F3
 C6EF  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F3
 C6F0  08        PHP                             A:AA X:97 Y:4E P:EF SP:F3
 C6F1  48        PHA                             A:AA X:97 Y:4E P:EF SP:F2
-C6F2  1C A9 A9 *NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
-C6F5  3C A9 A9 *NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
-C6F8  5C A9 A9 *NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
-C6FB  7C A9 A9 *NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
-C6FE  DC A9 A9 *NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
-C701  FC A9 A9 *NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
+C6F2  1C A9 A9  NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
+C6F5  3C A9 A9  NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
+C6F8  5C A9 A9  NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
+C6FB  7C A9 A9  NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
+C6FE  DC A9 A9  NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
+C701  FC A9 A9  NOP $A9A9,X @ AA40 = 00         A:AA X:97 Y:4E P:EF SP:F1
 C704  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F1
 C705  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F1
 C706  EA        NOP                             A:AA X:97 Y:4E P:EF SP:F1
@@ -5131,53 +5131,53 @@ C6B7  A9 34     LDA #$34                        A:CB X:00 Y:53 P:6F SP:F9
 C6B9  48        PHA                             A:34 X:00 Y:53 P:6D SP:F9
 C6BA  A9 55     LDA #$55                        A:34 X:00 Y:53 P:6D SP:F8
 C6BC  28        PLP                             A:55 X:00 Y:53 P:6D SP:F8
-C6BD  04 A9    *NOP $A9 = 00                    A:55 X:00 Y:53 P:24 SP:F9
-C6BF  44 A9    *NOP $A9 = 00                    A:55 X:00 Y:53 P:24 SP:F9
-C6C1  64 A9    *NOP $A9 = 00                    A:55 X:00 Y:53 P:24 SP:F9
+C6BD  04 A9     NOP $A9 = 00                    A:55 X:00 Y:53 P:24 SP:F9
+C6BF  44 A9     NOP $A9 = 00                    A:55 X:00 Y:53 P:24 SP:F9
+C6C1  64 A9     NOP $A9 = 00                    A:55 X:00 Y:53 P:24 SP:F9
 C6C3  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F9
 C6C4  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F9
 C6C5  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F9
 C6C6  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F9
 C6C7  08        PHP                             A:55 X:00 Y:53 P:24 SP:F9
 C6C8  48        PHA                             A:55 X:00 Y:53 P:24 SP:F8
-C6C9  0C A9 A9 *NOP $A9A9 = A9                  A:55 X:00 Y:53 P:24 SP:F7
+C6C9  0C A9 A9  NOP $A9A9 = A9                  A:55 X:00 Y:53 P:24 SP:F7
 C6CC  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F7
 C6CD  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F7
 C6CE  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F7
 C6CF  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F7
 C6D0  08        PHP                             A:55 X:00 Y:53 P:24 SP:F7
 C6D1  48        PHA                             A:55 X:00 Y:53 P:24 SP:F6
-C6D2  14 A9    *NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
-C6D4  34 A9    *NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
-C6D6  54 A9    *NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
-C6D8  74 A9    *NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
-C6DA  D4 A9    *NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
-C6DC  F4 A9    *NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
+C6D2  14 A9     NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
+C6D4  34 A9     NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
+C6D6  54 A9     NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
+C6D8  74 A9     NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
+C6DA  D4 A9     NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
+C6DC  F4 A9     NOP $A9,X @ A9 = 00             A:55 X:00 Y:53 P:24 SP:F5
 C6DE  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F5
 C6DF  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F5
 C6E0  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F5
 C6E1  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F5
 C6E2  08        PHP                             A:55 X:00 Y:53 P:24 SP:F5
 C6E3  48        PHA                             A:55 X:00 Y:53 P:24 SP:F4
-C6E4  1A       *NOP                             A:55 X:00 Y:53 P:24 SP:F3
-C6E5  3A       *NOP                             A:55 X:00 Y:53 P:24 SP:F3
-C6E6  5A       *NOP                             A:55 X:00 Y:53 P:24 SP:F3
-C6E7  7A       *NOP                             A:55 X:00 Y:53 P:24 SP:F3
-C6E8  DA       *NOP                             A:55 X:00 Y:53 P:24 SP:F3
-C6E9  FA       *NOP                             A:55 X:00 Y:53 P:24 SP:F3
-C6EA  80 89    *NOP #$89                        A:55 X:00 Y:53 P:24 SP:F3
+C6E4  1A        NOP                             A:55 X:00 Y:53 P:24 SP:F3
+C6E5  3A        NOP                             A:55 X:00 Y:53 P:24 SP:F3
+C6E6  5A        NOP                             A:55 X:00 Y:53 P:24 SP:F3
+C6E7  7A        NOP                             A:55 X:00 Y:53 P:24 SP:F3
+C6E8  DA        NOP                             A:55 X:00 Y:53 P:24 SP:F3
+C6E9  FA        NOP                             A:55 X:00 Y:53 P:24 SP:F3
+C6EA  80 89     NOP #$89                        A:55 X:00 Y:53 P:24 SP:F3
 C6EC  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F3
 C6ED  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F3
 C6EE  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F3
 C6EF  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F3
 C6F0  08        PHP                             A:55 X:00 Y:53 P:24 SP:F3
 C6F1  48        PHA                             A:55 X:00 Y:53 P:24 SP:F2
-C6F2  1C A9 A9 *NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
-C6F5  3C A9 A9 *NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
-C6F8  5C A9 A9 *NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
-C6FB  7C A9 A9 *NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
-C6FE  DC A9 A9 *NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
-C701  FC A9 A9 *NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
+C6F2  1C A9 A9  NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
+C6F5  3C A9 A9  NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
+C6F8  5C A9 A9  NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
+C6FB  7C A9 A9  NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
+C6FE  DC A9 A9  NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
+C701  FC A9 A9  NOP $A9A9,X @ A9A9 = A9         A:55 X:00 Y:53 P:24 SP:F1
 C704  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F1
 C705  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F1
 C706  EA        NOP                             A:55 X:00 Y:53 P:24 SP:F1

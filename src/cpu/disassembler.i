@@ -82,8 +82,7 @@ void disassemble2() {
 		printf("$%02X,Y @ %02X = %02X             ", cpu.indoperand, cpu.operaddr & 0xFF, cpu.operand);
 
 	else if (mode == REL)
-		printf("$%04X                       ",
-			(cpu.operand & 0x80) ? cpu.PC - (cpu.operand & 0x7F) : cpu.PC + (cpu.operand & 0x7F));
+		printf("$%04X                       ", cpu.PC + (int8_t)cpu.operand);
 
 	else if (mode == ABS) {
 		if (cpu.opcode == 0x20 || cpu.opcode == 0x4C)
