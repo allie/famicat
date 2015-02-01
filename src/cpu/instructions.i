@@ -189,9 +189,7 @@ static void CLC() {
 /* Clear decimal mode (NOT USED IN NES MODE) */
 /* D=0 */
 static void CLD() {
-#ifdef NES_MODE
     CLEAR_FLAG(FLAG_D);
-#endif
 }
 
 /* Clear interrupt disable flag */
@@ -397,7 +395,7 @@ static void PLA() {
 /* Pull processor status from stack */
 /* N Z C I D V = pull from stack */
 static void PLP() {
-    cpu.S = pullb() | 0x20;
+    cpu.S = (pullb() & ~(FLAG_B)) | 0x20;
 }
 
 /* Rotate accumulator left one bit */
@@ -479,9 +477,7 @@ static void SEC() {
 /* Set decimal mode (NOT USED IN NES MODE) */
 /* D=1 */
 static void SED() {
-#ifdef NES_MODE
     SET_FLAG(FLAG_D);
-#endif
 }
 
 /* Set interrupt disable flag */

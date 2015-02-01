@@ -60,7 +60,7 @@ static void IND() {
 
 /* (Indirect, X) */
 static void IDX() {
-	cpu.operaddr = Memory_ReadWord(((0x00ff & (cpu.X + Memory_ReadByte(cpu.PC++)))));
+	cpu.operaddr = Memory_ReadWord(((0x00ff & ((WORD)cpu.X + Memory_ReadByte(cpu.PC++)))));
 }
 
 /* (Indirect), Y */

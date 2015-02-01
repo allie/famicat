@@ -106,7 +106,7 @@ void CPU_Reset() {
 	cpu.X = 0;
 	cpu.Y = 0;
 	cpu.SP = 0xFD;
-	cpu.S |= 0x20;
+	cpu.S = 0x24;
 }
 
 /* Execute one CPU instruction */
