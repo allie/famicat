@@ -402,7 +402,7 @@ static void PLP() {
 /* N Z C */
 static void ROLA() {
     BYTE result = cpu.A << 1;
-    result &= GET_FLAG(FLAG_C);
+    result |= GET_FLAG(FLAG_C);
     CALC_C(cpu.A & 0x80);
     CALC_Z(result);
     CALC_N(result);
@@ -413,7 +413,7 @@ static void ROLA() {
 /* N Z C */
 static void ROL() {
     BYTE result = cpu.operand << 1;
-    result &= GET_FLAG(FLAG_C);
+    result |= GET_FLAG(FLAG_C);
     CALC_C(cpu.operand & 0x80);
     CALC_Z(result);
     CALC_N(result);
@@ -424,7 +424,8 @@ static void ROL() {
 /* N Z C */
 static void RORA() {
     BYTE result = cpu.A >> 1;
-    result &= (GET_FLAG(FLAG_C) & 0x80);
+    if(GET_FLAG(FLAG_C))
+        result |= 0x80;
     CALC_C(cpu.A & 1);
     CALC_Z(result);
     CALC_N(result);
@@ -435,7 +436,8 @@ static void RORA() {
 /* N Z C */
 static void ROR() {
     BYTE result = cpu.operand >> 1;
-    result &= (GET_FLAG(FLAG_C) & 0x80);
+    if(GET_FLAG(FLAG_C))
+        result |= 0x80;
     CALC_C(cpu.operand & 1);
     CALC_Z(result);
     CALC_N(result);
@@ -445,7 +447,7 @@ static void ROR() {
 /* Return from interrupt */
 /* N Z C I D V = pull from stack */
 static void RTI() {
-    cpu.S = pullb();
+    cpu.S = (pullb() & ~(FLAG_B)) | 0x20;
     cpu.PC = pullw();
 }
 
