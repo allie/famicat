@@ -61,7 +61,7 @@ static void IND() {
 	cpu.indoperaddr = Memory_ReadWord(cpu.PC);
 	WORD tmp = cpu.indoperaddr;
  	WORD tmp2 = (tmp & 0xFF00) | ((tmp + 1) & 0x00FF);
- 	cpu.operaddr = (WORD)Memory_ReadByte(tmp) |((WORD)Memory_ReadByte(tmp2) << 8);
+ 	cpu.operaddr = (WORD)Memory_ReadByte(tmp) | ((WORD)Memory_ReadByte(tmp2) << 8);
 	cpu.PC += 2;
 }
 
@@ -79,7 +79,7 @@ static void IDX() {
 /* (Indirect), Y */
 static void IDY() {
 	cpu.indoperand = Memory_ReadByte(cpu.PC++);
-	if (cpu.indoperand == 0xFF){
+	if (cpu.indoperand == 0xFF) {
 		cpu.indoperaddr = (WORD)Memory_ReadByte(0xFF) | ((WORD)Memory_ReadByte(0) << 8);
 	}
 	else
