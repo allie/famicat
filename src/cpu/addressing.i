@@ -59,9 +59,10 @@ static void ABY() {
 /* Indirect */
 static void IND() {
 	cpu.indoperaddr = Memory_ReadWord(cpu.PC);
- 	cpu.operaddr = Memory_ReadWord(cpu.indoperaddr);
+	WORD tmp = cpu.indoperaddr;
+ 	WORD tmp2 = (tmp & 0xFF00) | ((tmp + 1) & 0x00FF);
+ 	cpu.operaddr = (WORD)Memory_ReadByte(tmp) |((WORD)Memory_ReadByte(tmp2) << 8);
 	cpu.PC += 2;
-	/* TODO: Implement bug */
 }
 
 /* (Indirect, X) */
