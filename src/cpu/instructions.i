@@ -554,49 +554,66 @@ static void TYA() {
 /* DEC memory and CMP result with accumulator (UNOFFICIAL) */
 /* ? */
 static void DCP() {
-    /* TODO */
+    DEC();
+    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    CMP();
 }
 
 /* INC memory and SBC result from the accumulator (UNOFFICIAL) */
 /* ? */
 static void ISB() {
-    /* TODO */
+    INC();
+    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    SBC();
 }
 
 /* Load accumulator and index X with memory (UNOFFICIAL) */
 /* ? */
 static void LAX() {
-    /* TODO */
+    LDA();
+    LDX();
 }
 
 /* ROL memory and AND result with accumulator (UNOFFICIAL) */
 /* ? */
 static void RLA() {
-    /* TODO */
+    ROL();
+    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    AND();
 }
 
 /* ROR memory and ADC result with accumulator (UNOFFICIAL) */
 /* ? */
 static void RRA() {
-    /* TODO */
+    ROR();
+    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    ADC();
 }
 
 /* AND accumulator with index X and store the result in memory (UNOFFICIAL) */
 /* No flags changed */
 static void SAX() {
-    /* TODO */
+    STA();
+    STX();
+    Memory_WriteByte(cpu.operaddr, (cpu.A & cpu.X));
+    PAGE_PENALTY();
 }
 
 /* ASL memory and OR result with accumulator (UNOFFICIAL) */
 /* ? */
 static void SLO() {
-    /* TODO */
+    ASL();
+    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    ORA();
+
 }
 
 /* LSR memory and XOR result with accumulator (UNOFFICIAL) */
 /* ? */
 static void SRE() {
-    /* TODO */
+    LSR();
+    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    EOR();
 }
 
 #else
