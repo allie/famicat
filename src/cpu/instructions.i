@@ -40,10 +40,7 @@
 
 #define ADD_OFFSET() \
     WORD oldPC = cpu.PC; \
-    if(cpu.operand & 0x80) \
-        cpu.PC -= (cpu.operand & 0x7f); \
-    else \
-        cpu.PC += (cpu.operand & 0x7f); \
+    cpu.PC += ~cpu.operand + 1; \
     if((cpu.PC & 0xff00) != (oldPC & 0xff00)) \
         cpu.cycles += 2; \
     else \
