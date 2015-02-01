@@ -63,8 +63,11 @@ void disassemble2() {
 
 	printf("%s ", instrsymbols[cpu.opcode]);
 
-	if (mode == IMP || mode == ACC)
+	if (mode == IMP)
 		printf("                            ");
+
+	else if (mode == ACC)
+		printf("A                           ");
 
 	else if (mode == IMM)
 			printf("#$%02X                        ", cpu.operand);
