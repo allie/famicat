@@ -4,7 +4,7 @@ C5F7  86 00     STX $00 = 00                    A:00 X:00 Y:00 P:26 SP:FD
 C5F9  86 10     STX $10 = 00                    A:00 X:00 Y:00 P:26 SP:FD
 C5FB  86 11     STX $11 = 00                    A:00 X:00 Y:00 P:26 SP:FD
 C5FD  20 2D C7  JSR $C72D                       A:00 X:00 Y:00 P:26 SP:FD
-C72D  EA        NOP IDX                         A:00 X:00 Y:00 P:26 SP:FB
+C72D  EA        NOP                             A:00 X:00 Y:00 P:26 SP:FB
 C72E  38        SEC                             A:00 X:00 Y:00 P:26 SP:FB
 C72F  B0 04     BCS $C735                       A:00 X:00 Y:00 P:27 SP:FB
 C735  EA        NOP                             A:00 X:00 Y:00 P:27 SP:FB
