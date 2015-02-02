@@ -1,6 +1,5 @@
 #include "cpu.h"
 #include "../memory/memory.h"
-#include <execinfo.h>
 
 /* Global CPU */
 CPU cpu;

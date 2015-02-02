@@ -8,6 +8,7 @@ OS=$(shell gcc -dumpmachine)
 
 ifneq (, $(findstring mingw, $(OS)))
 	LDFLAGS := -lmingw32 $(LDFLAGS)
+	CC=gcc
 endif
 
 all: clean $(SOURCES) $(EXECUTABLE)
