@@ -10,6 +10,11 @@ void Cart_Load(const char* file) {
 
 	FILE* fp = fopen(file, "rb");
 
+	if (!fp) {
+		printf("Error opening ROM file.\n");
+		exit(0);
+	}
+
 	fseek(fp, 0L, SEEK_END);
 	long int size = ftell(fp);
 	fseek(fp, 0L, SEEK_SET);

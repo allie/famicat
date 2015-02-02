@@ -86,6 +86,11 @@ void Memory_WriteWord(WORD addr, WORD val) {
 void Memory_Dump() {
 	FILE* fp = fopen("memory.log", "w");
 
+	if (!fp) {
+		printf("Error opening memory.log for output.\n");
+		return;
+	}
+
 	// Working RAM + mirrors
 	fprintf(fp, "--------------------------------------------------------\n");
 	fprintf(fp, "Working RAM: 0x0000 - 0x1FFF\n");
