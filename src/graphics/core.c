@@ -6,12 +6,16 @@ static SDL_Window* window;
 static SDL_Renderer* renderer;
 static int width;
 static int height;
+static int lwidth;
+static int lheight;
 
 static Dictionary* textures;
 
-int Graphics_Init() {
-	width = 512;
-	height = 480;
+int Graphics_Init(int w, int h) {
+	width = w;
+	height = h;
+	lwidth = 512;
+	lheight = 480;
 
 	textures = Dictionary_New();
 
@@ -41,7 +45,9 @@ int Graphics_Init() {
 	}
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-	SDL_RenderSetLogicalSize(renderer, 512, 480);
+
+	if (lwidth != width || lheight != height)
+		SDL_RenderSetLogicalSize(renderer, lwidth, lheight);
 
 	Sprite_Init();
 

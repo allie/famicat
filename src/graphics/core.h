@@ -5,7 +5,7 @@
 #include <SDL2/SDL_image.h>
 #include "../common.h"
 
-int Graphics_Init();
+int Graphics_Init(int w, int h);
 SDL_Texture* Graphics_LoadPNG(const char* key, const char* file);
 SDL_Texture* Graphics_LoadPNGDir(const char* path, int recurse);
 SDL_Texture* Graphics_GetTexture(const char* key);

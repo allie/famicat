@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	if (!Graphics_Init())
+	if (!Graphics_Init(512, 480))
 		return 0;
 
 	if (!Timer_Init())
