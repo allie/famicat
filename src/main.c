@@ -3,7 +3,7 @@
 #include "cart/cart.h"
 
 int main() {
-	Cart_Load("test.nes");
+	Cart_Load("nestest.nes");
 	CPU_Reset();
 	for (int i = 0; i < 8991; i++)
 		CPU_Step();
