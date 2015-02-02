@@ -144,16 +144,16 @@ void CPU_Step() {
 	switch(cpu.interrupt){
 		case IRQ:
 			if(!(GET_FLAG(FLAG_I))){
-				interrupt_IRQ();
+				CPU_Interrupt_IRQ();
 				cpu.interrupt = NONE;
 			}
 			break;
 		case NMI:
-			interrupt_NMI();
+			CPU_Interrupt_NMI();
 			cpu.interrupt = NONE;
 			break;
 		case RESET:
-			interrupt_RESET();
+			CPU_Interrupt_RESET();
 			cpu.interrupt = NONE;
 			break;
 	}
