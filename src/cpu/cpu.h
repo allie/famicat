@@ -15,6 +15,11 @@
 /* Stack base address */
 #define STACK_ADDR 0x100
 
+#define NONE 0
+#define IRQ 1
+#define NMI 2
+#define RESET 3
+
 typedef struct {
 	WORD PC;
 	BYTE SP;
@@ -28,6 +33,7 @@ typedef struct {
 	WORD indoperaddr;
 	BYTE indoperand;
 	DWORD cycles;
+	BYTE interrupt;
 } CPU;
 
 void CPU_Reset();

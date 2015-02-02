@@ -99,9 +99,33 @@ static const DWORD cycles[256] = {
 /* F */ 2,   5,   2,   8,   4,   4,   6,   6,   2,   4,   2,   7,   4,   4,   7,   7
 };
 
+/* Interrupt functions */
+/* TODO: Interrupt hijacking */
+void CPU_Interrupt_IRQ() {
+	CLEAR_FLAG(FLAG_B);
+	pushw(cpu.PC);
+	pushb(cpu.S);
+	SET_FLAG(FLAG_I);
+	cpu.PC = Memory_ReadWord(0xFFFE);
+}
+
+void CPU_Interrupt_NMI() {
+	CLEAR_FLAG(FLAG_B);
+	pushw(cpu.PC);
+	pushb(cpu.S);
+	SET_FLAG(FLAG_I);
+	cpu.PC = Memory_ReadWord(0xFFFA);
+}
+
+void CPU_Interrupt_RESET() {
+	cpu.PC = Memory_ReadWord(0xFFFC);
+	cpu.SP = 0xFD;
+	cpu.S |= 0x24;
+}
+
 /* Re-initialize all CPU registers and variables */
 void CPU_Reset() {
-	cpu.PC = 0xC000;
+	cpu.PC = Memory_ReadWord(0xFFFC);
 	cpu.A = 0;
 	cpu.X = 0;
 	cpu.Y = 0;
@@ -117,14 +141,30 @@ void CPU_Reset() {
 
 /* Execute one CPU instruction */
 void CPU_Step() {
+	/* Check for interrupts */
+	switch(cpu.interrupt){
+		case IRQ:
+			if(!(GET_FLAG(FLAG_I))){
+				interrupt_IRQ();
+				cpu.interrupt = NONE;
+			}
+			break;
+		case NMI:
+			interrupt_NMI();
+			cpu.interrupt = NONE;
+			break;
+		case RESET:
+			interrupt_RESET();
+			cpu.interrupt = NONE;
+			break;
+	}
+
 	/* Fetch opcode */
 	cpu.opcode = Memory_ReadByte(cpu.PC++);
 
 #ifdef DEBUG_MODE
 	disassemble1();
 #endif
-
-	/* Some stuff */
 
 	/* Fetch operand address */
 	mode = addr[cpu.opcode];
