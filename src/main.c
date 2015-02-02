@@ -2,6 +2,9 @@
 #include "cpu/cpu.h"
 #include "memory/memory.h"
 #include "cart/cart.h"
+#include "graphics/core.h"
+#include "utils/timer.h"
+#include "graphics/sprite.h"
 
 int main(int argc, char* argv[]) {
 	if (argc < 2) {
@@ -19,7 +22,7 @@ int main(int argc, char* argv[]) {
 
 	if (!Timer_Init())
 		return 0;
-	
+
 	Cart_Load(argv[1]);
 
 	CPU_Reset();
