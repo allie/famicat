@@ -2,6 +2,9 @@
 #include "cpu/cpu.h"
 #include "memory/memory.h"
 #include "cart/cart.h"
+#include "graphics/core.h"
+#include "utils/timer.h"
+#include "graphics/sprite.h"
 
 int main(int argc, char* argv[]) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -14,7 +17,7 @@ int main(int argc, char* argv[]) {
 
 	if (!Timer_Init())
 		return 0;
-	
+
 	if (argc > 1) {
 		Cart_Load(argv[1]);
 
