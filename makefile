@@ -1,13 +1,13 @@
 CC=clang
 CFLAGS=-std=c99 -c -Wall -D_POSIX_C_SOURCE=200112L -DDEBUG_MODE -DUNOFFICIAL_MODE -g
-LDFLAGS=-lm
+LDFLAGS=-lSDL2_image -lSDL2 -lm
 SOURCES=$(shell find src -name "*.c")
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=famicat
 OS=$(shell gcc -dumpmachine)
 
 ifneq (, $(findstring mingw, $(OS)))
-	LDFLAGS := -lmingw32 $(LDFLAGS)
+	LDFLAGS := -lmingw32 -lSDL2main $(LDFLAGS)
 	CC=gcc
 endif
 
