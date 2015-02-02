@@ -8,5 +8,7 @@ int main() {
 	for (int i = 0; i < 8991; i++)
 		CPU_Step();
 
+	Memory_Dump();
+
 	return 0;
 }

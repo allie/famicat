@@ -18,4 +18,8 @@ WORD Memory_ReadWord(WORD addr);
 void Memory_WriteByte(WORD addr, BYTE val);
 void Memory_WriteWord(WORD addr, WORD val);
 
+#ifdef DEBUG_MODE
+void Memory_Dump();
+#endif
+
 #endif
