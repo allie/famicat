@@ -13,12 +13,21 @@ typedef struct {
     BYTE halt;
     BYTE length;
     WORD sample;
+    int timer;
+    int timer_period;
+    BYTE sweep_enable;
+    BYTE sweep_period;
+    BYTE negate;
+    BYTE shift;
+    BYTE duty;
 } Square;
 
 typedef struct {
     BYTE halt;
     WORD sample;
     BYTE length;
+    int timer;
+    int timer_period;
 } Triangle;
 
 typedef struct {
@@ -26,12 +35,16 @@ typedef struct {
     BYTE halt;
     BYTE length;
     WORD sample;
+    int timer;
+    int timer_period;
 } Noise;
 
 typedef struct {
     WORD sample;
     BYTE irq;
     BYTE bytes_remaining;
+    int timer;
+    int timer_period;
 } DMC;
 
 typedef struct {
