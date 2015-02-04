@@ -1,5 +1,5 @@
-#ifndef CORE_H
-#define CORE_H
+#ifndef GCORE_H
+#define GCORE_H
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>

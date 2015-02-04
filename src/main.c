@@ -5,6 +5,7 @@
 #include "graphics/core.h"
 #include "utils/timer.h"
 #include "graphics/sprite.h"
+#include "audio/core.h"
 
 int main(int argc, char* argv[]) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -16,6 +17,9 @@ int main(int argc, char* argv[]) {
 		return 0;
 
 	if (!Timer_Init())
+		return 0;
+
+	if (!Audio_Init())
 		return 0;
 
 	if (argc > 1) {
@@ -36,6 +40,8 @@ int main(int argc, char* argv[]) {
 
 	while (1) {
 		Timer_UpdateAll();
+
+		Audio_AddSample(0xC000);
 
 		SDL_Event e;
 		if (SDL_PollEvent(&e))
