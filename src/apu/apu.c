@@ -108,9 +108,9 @@ void APU_FrameSequencerStep() {
         APU_ClockSweep(&apu.square1);
         APU_ClockSweep(&apu.square2);
     }
-    APU_ClockDecay(&apu.square1.envelope);
-    APU_ClockDecay(&apu.square2.envelope);
-    APU_ClockDecay(&apu.noise.envelope);
+    APU_ClockEnvelope(&apu.square1.envelope);
+    APU_ClockEnvelope(&apu.square2.envelope);
+    APU_ClockEnvelope(&apu.noise.envelope);
     APU_ClockLinearCounter();
 
     if (apu.frame_tick >= apu.frame_mode)
@@ -310,6 +310,7 @@ void APU_WriteSquare1High(BYTE val) {
     /* llll lppp   length index, period high */
     apu.square1.length = length_lookup[val >> 3];
     apu.square1.period = (apu.square1.period & 0x00FF) | ((val & 0x07) << 8);
+    apu.square1.sequencer_reload = 1;
 }
 
 void APU_WriteSquare2Control(BYTE val) {
@@ -341,6 +342,7 @@ void APU_WriteSquare2High(BYTE val) {
     val = Memory_ReadByte(0x4003 + offset);
     apu.square2.length = length_lookup[val >> 3];
     apu.square2.period = (apu.square2.period & 0x00FF) | ((val & 0x07) << 8);
+    apu.square2.sequencer_reload = 1;
 }
 
 void APU_WriteTriangleControl(BYTE val) {
