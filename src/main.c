@@ -7,6 +7,10 @@
 #include "utils/timer.h"
 #include "graphics/sprite.h"
 #include "audio/core.h"
+#include "apu/apu.h"
+
+extern CPU cpu;
+extern APU apu;
 
 int main(int argc, char* argv[]) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -27,25 +31,12 @@ int main(int argc, char* argv[]) {
 		Cart_Load(argv[1]);
 
 		CPU_Reset();
-
-		for (int i = 0; i < 8991; i++)
-			CPU_Step();
-
-		Memory_Dump();
 	} else {
 		printf("NOTE: No ROM file supplied.\n");
 	}
 
 	SDL_Texture* tex = Graphics_LoadPNG("splash", "res/splash.png");
 	int splash = (tex) ? Sprite_Add(tex, 512, 480) : -1;
-
-	double pi2 = 3.14159 * 2;
-	double current = 0.0;
-
-	for (int i = 0; i < 88200; i++) {
-		Audio_AddSample((sin(current) - 0.5) * 0x2000);
-		current += (pi2 / 128);
-	}
 
 	while (1) {
 		Timer_UpdateAll();
@@ -59,6 +50,14 @@ int main(int argc, char* argv[]) {
 		Graphics_Clear();
 
 		Sprite_Render(splash, 0, 0);
+
+		int cycles = CPU_Step();
+
+		for (int i = 0; i < cycles; i++) {
+			APU_FrameSequencerStep();
+			APU_FrameSequencerStep();
+			APU_Step();
+		}
 
 		Graphics_Present();
 	}

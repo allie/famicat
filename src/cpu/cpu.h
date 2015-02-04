@@ -37,6 +37,6 @@ typedef struct {
 } CPU;
 
 void CPU_Reset();
-void CPU_Step();
+DWORD CPU_Step();
 
 #endif

@@ -139,7 +139,7 @@ void CPU_Reset() {
 }
 
 /* Execute one CPU instruction */
-void CPU_Step() {
+DWORD CPU_Step() {
 	/* Check for interrupts */
 	switch(cpu.interrupt){
 		case IRQ:
@@ -184,4 +184,7 @@ void CPU_Step() {
 
 	/* Add cycles to the total cycle count */
 	cpu.cycles += cycles[cpu.opcode];
+
+	// TODO: penalties
+	return cycles[cpu.opcode];
 }
