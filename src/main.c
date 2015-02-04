@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <math.h>
 #include "cpu/cpu.h"
 #include "memory/memory.h"
 #include "cart/cart.h"
@@ -38,10 +39,16 @@ int main(int argc, char* argv[]) {
 	SDL_Texture* tex = Graphics_LoadPNG("splash", "res/splash.png");
 	int splash = (tex) ? Sprite_Add(tex, 512, 480) : -1;
 
+	double pi2 = 3.14159 * 2;
+	double current = 0.0;
+
+	for (int i = 0; i < 88200; i++) {
+		Audio_AddSample((sin(current) - 0.5) * 0xFFFF);
+		current += (pi2 / 256);
+	}
+
 	while (1) {
 		Timer_UpdateAll();
-
-		Audio_AddSample(0xC000);
 
 		SDL_Event e;
 		if (SDL_PollEvent(&e))
