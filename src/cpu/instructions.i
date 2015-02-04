@@ -90,7 +90,7 @@ static void ASL() {
     CALC_C(cpu.operand & 0x80);
     CALC_N(result);
     CALC_Z(result);
-    Memory_WriteByte(cpu.operaddr, result);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, result);
 }
 
 /* Branch on carry clear */
@@ -158,7 +158,7 @@ static void BRK() {
     pushw(cpu.PC);
     pushb(cpu.S);
     SET_FLAG(FLAG_I);
-    cpu.PC = Memory_ReadWord(0xFFFE);
+    cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFE);
 }
 
 /* Branch on overflow clear */
@@ -235,7 +235,7 @@ static void DEC() {
     BYTE result = cpu.operand - 1;
     CALC_Z(result);
     CALC_N(result);
-    Memory_WriteByte(cpu.operaddr, result);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, result);
 }
 
 /* Decrement index X by one */
@@ -272,7 +272,7 @@ static void INC() {
     BYTE result = cpu.operand + 1;
     CALC_Z(result);
     CALC_N(result);
-    Memory_WriteByte(cpu.operaddr, result);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, result);
 }
 
 /* Increment index X by one */
@@ -350,7 +350,7 @@ static void LSR() {
     CALC_C(cpu.operand & 1);
     CALC_Z(result);
     CALC_N(result);
-    Memory_WriteByte(cpu.operaddr, result);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, result);
 }
 
 /* No operation */
@@ -414,7 +414,7 @@ static void ROL() {
     CALC_C(cpu.operand & 0x80);
     CALC_Z(result);
     CALC_N(result);
-    Memory_WriteByte(cpu.operaddr, result);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, result);
 }
 
 /* Rotate accumulator right one bit */
@@ -438,7 +438,7 @@ static void ROR() {
     CALC_C(cpu.operand & 1);
     CALC_Z(result);
     CALC_N(result);
-    Memory_WriteByte(cpu.operaddr, result);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, result);
 }
 
 /* Return from interrupt */
@@ -488,19 +488,19 @@ static void SEI() {
 /* Store accumulator in memory */
 /* No flags changed */
 static void STA() {
-    Memory_WriteByte(cpu.operaddr, cpu.A);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, cpu.A);
 }
 
 /* Store index X in memory */
 /* No flags changed */
 static void STX() {
-    Memory_WriteByte(cpu.operaddr, cpu.X);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, cpu.X);
 }
 
 /* Store index Y in memory */
 /* No flags changed */
 static void STY() {
-    Memory_WriteByte(cpu.operaddr, cpu.Y);
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, cpu.Y);
 }
 
 /* Transfer accumulator to index X */
@@ -555,7 +555,7 @@ static void TYA() {
 /* ? */
 static void DCP() {
     DEC();
-    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    cpu.operand = Memory_ReadByte(MAP_CPU, cpu.operaddr);
     CMP();
 }
 
@@ -563,7 +563,7 @@ static void DCP() {
 /* ? */
 static void ISB() {
     INC();
-    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    cpu.operand = Memory_ReadByte(MAP_CPU, cpu.operaddr);
     SBC();
 }
 
@@ -578,7 +578,7 @@ static void LAX() {
 /* ? */
 static void RLA() {
     ROL();
-    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    cpu.operand = Memory_ReadByte(MAP_CPU, cpu.operaddr);
     AND();
 }
 
@@ -586,7 +586,7 @@ static void RLA() {
 /* ? */
 static void RRA() {
     ROR();
-    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    cpu.operand = Memory_ReadByte(MAP_CPU, cpu.operaddr);
     ADC();
 }
 
@@ -595,14 +595,14 @@ static void RRA() {
 static void SAX() {
     STA();
     STX();
-    Memory_WriteByte(cpu.operaddr, (cpu.A & cpu.X));
+    Memory_WriteByte(MAP_CPU, cpu.operaddr, (cpu.A & cpu.X));
 }
 
 /* ASL memory and OR result with accumulator (UNOFFICIAL) */
 /* ? */
 static void SLO() {
     ASL();
-    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    cpu.operand = Memory_ReadByte(MAP_CPU, cpu.operaddr);
     ORA();
 }
 
@@ -610,7 +610,7 @@ static void SLO() {
 /* ? */
 static void SRE() {
     LSR();
-    cpu.operand = Memory_ReadByte(cpu.operaddr);
+    cpu.operand = Memory_ReadByte(MAP_CPU, cpu.operaddr);
     EOR();
 }
 

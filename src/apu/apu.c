@@ -94,7 +94,7 @@ void APU_Write() {
 void APU_Write_Square1() {
     BYTE tmp;
     /* ddle nnnn   duty, loop env/disable length, env disable, vol/env */
-    tmp = Memory_ReadByte(0x4000);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4000);
     apu.square1.duty = tmp >> 6;
     apu.square1.envelope.loop = apu.square1.length_halt = (tmp >> 5) & 0x01;
     apu.square1.envelope.disable = (tmp >> 4) & 0x01;
@@ -102,18 +102,18 @@ void APU_Write_Square1() {
     apu.square1.envelope.period = apu.square1.envelope.volume + 1;
 
     /* eppp nsss   enable sweep, period, negative, shift */
-    tmp = Memory_ReadByte(0x4001);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4001);
     apu.square1.sweep_enable = tmp >> 7;
     apu.square1.sweep_period = (tmp >> 4) & 0x07;
     apu.square1.negate = (tmp >> 3) & 0x01;
     apu.square1.shift = tmp & 0x07;
 
     /* pppp pppp   period low */
-    tmp = Memory_ReadByte(0x4002);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4002);
     apu.square1.timer_period = tmp;
 
     /* llll lppp   length index, period high */
-    tmp = Memory_ReadByte(0x4003);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4003);
     apu.square1.length = length_lookup[tmp >> 3];
     apu.square1.timer_period |= (tmp & 0x07) << 8;
 }
@@ -121,7 +121,7 @@ void APU_Write_Square1() {
 void APU_Write_Square2() {
     BYTE tmp;
     /* ddle nnnn   duty, loop env/disable length, env disable, vol/env */
-    tmp = Memory_ReadByte(0x4004);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4004);
     apu.square2.duty = tmp >> 6;
     apu.square2.envelope.loop = apu.square2.length_halt = (tmp >> 5) & 0x01;
     apu.square2.envelope.disable = (tmp >> 4) & 0x01;
@@ -129,18 +129,18 @@ void APU_Write_Square2() {
     apu.square2.envelope.period = apu.square2.envelope.volume + 1;
 
     /* eppp nsss   enable sweep, period, negative, shift */
-    tmp = Memory_ReadByte(0x4005);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4005);
     apu.square2.sweep_enable = tmp >> 7;
     apu.square2.sweep_period = (tmp >> 4) & 0x07;
     apu.square2.negate = (tmp >> 3) & 0x01;
     apu.square2.shift = tmp & 0x07;
 
     /* pppp pppp   period low */
-    tmp = Memory_ReadByte(0x4006);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4006);
     apu.square2.timer_period = tmp;
 
     /* llll lppp   length index, period high */
-    tmp = Memory_ReadByte(0x4007);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4007);
     apu.square2.length = length_lookup[tmp >> 3];
     apu.square2.timer_period |= (tmp & 0x07) << 8;
 }
@@ -148,16 +148,16 @@ void APU_Write_Square2() {
 void APU_Write_Triangle() {
     BYTE tmp;
     /* clll llll   control, linear counter load */
-    tmp = Memory_ReadByte(0x4008);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4008);
     apu.triangle.control = apu.triangle.length_halt = tmp >> 7;
     apu.triangle.linear_reload = tmp & 0x7F;
 
     /* pppp pppp   period low */
-    tmp = Memory_ReadByte(0x400A);
+    tmp = Memory_ReadByte(MAP_CPU, 0x400A);
     apu.triangle.timer_period = tmp;
 
     /* llll lppp   length index, period high */
-    tmp = Memory_ReadByte(0x400B);
+    tmp = Memory_ReadByte(MAP_CPU, 0x400B);
     apu.triangle.length = length_lookup[tmp >> 3];
     apu.triangle.timer_period |= tmp & 0x07;
 }
@@ -165,47 +165,47 @@ void APU_Write_Triangle() {
 void APU_Write_Noise() {
     BYTE tmp;
 /* --le nnnn   loop env/disable length, env disable, vol/env period */
-    tmp = Memory_ReadByte(0x400C);
+    tmp = Memory_ReadByte(MAP_CPU, 0x400C);
     apu.noise.envelope.loop = apu.noise.length_halt = tmp >> 5;
     apu.noise.envelope.disable = (tmp >> 4) & 0x01;
     apu.noise.envelope.volume = tmp & 0x0F;
     apu.noise.envelope.period = apu.noise.envelope.volume + 1;
 
     /* s--- pppp   short mode, period index */
-    tmp = Memory_ReadByte(0x400E);
+    tmp = Memory_ReadByte(MAP_CPU, 0x400E);
     apu.noise.mode = (tmp >> 7) & 0x01;
     apu.noise.period = noise_period_lookup[tmp & 0x0F];
 
     /* llll l---   length index */
-    tmp = Memory_ReadByte(0x400F);
+    tmp = Memory_ReadByte(MAP_CPU, 0x400F);
     apu.noise.length = length_lookup[tmp >> 3];
 }
 
 void APU_Write_DMC() {
     BYTE tmp;
     /* il-- ffff   IRQ enable, loop, frequency index */
-    tmp = Memory_ReadByte(0x4010);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4010);
     apu.dmc.irq_enable = tmp >> 7;
     apu.dmc.loop_enable = (tmp >> 6) & 0x01;
     apu.dmc.frequency = dmc_frequency_lookup[tmp & 0x0F];
 
-    tmp = Memory_ReadByte(0x4011);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4011);
     /* -ddd dddd   DAC */
     apu.dmc.dac = tmp;
 
     /* aaaa aaaa   sample address */
-    tmp = Memory_ReadByte(0x4012);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4012);
     apu.dmc.sample_address = tmp * 0x40 + 0xC000;
 
     /* llll llll   sample length */
-    tmp = Memory_ReadByte(0x4013);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4013);
     apu.dmc.sample_length = tmp * 0x10 + 1;
 }
 
 void APU_Write_Common() {
     BYTE tmp;
     /* ---d nt21   length ctr enable: DMC, noise, triangle, pulse 2, 1 */
-    tmp = Memory_ReadByte(0x4015);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4015);
     apu.dmc.enabled = (tmp >> 4) & 0x01;
     apu.noise.enabled = (tmp >> 3) & 0x01;
     apu.triangle.enabled = (tmp >> 2) & 0x01;
@@ -213,7 +213,7 @@ void APU_Write_Common() {
     apu.square1.enabled = tmp & 0x01;
 
     /* fd-- ----   5-frame cycle, disable frame interrupt */
-    tmp = Memory_ReadByte(0x4017);
+    tmp = Memory_ReadByte(MAP_CPU, 0x4017);
     apu.frame_mode = tmp >> 7;
     apu.irq_enable = (~tmp >> 6) & 0x01;
 }

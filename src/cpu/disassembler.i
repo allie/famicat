@@ -98,7 +98,7 @@ void disassemble2() {
 		printf("$%04X,Y @ %04X = %02X         ", cpu.indoperaddr, cpu.operaddr, cpu.operand);
 
 	else if (mode == IND)
-		printf("($%04X) = %04X              ", cpu.indoperaddr, Memory_ReadWord(cpu.indoperaddr));
+		printf("($%04X) = %04X              ", cpu.indoperaddr, Memory_ReadWord(MAP_CPU, cpu.indoperaddr));
 
 	else if (mode == IDX)
 		printf("($%02X,X) @ %02X = %04X = %02X    ",

@@ -20,11 +20,40 @@ void Memory_Reset() {
 	if (memory.sram != NULL)
 		free(memory.sram);
 
-	memory.ram = calloc(0x800, sizeof(BYTE));
-	memory.ppureg = calloc(8, sizeof(BYTE));
-	memory.apureg = calloc(0x20, sizeof(BYTE));
-	memory.exprom = calloc(0x1FDF, sizeof(BYTE));
-	memory.sram = calloc(0x2000, sizeof(BYTE));
+	if (memory.pattern0 != NULL)
+		free(memory.pattern0);
+
+	if (memory.pattern1 != NULL)
+		free(memory.pattern1);
+
+	if (memory.nametable0 != NULL)
+		free(memory.nametable0);
+
+	if (memory.nametable1 != NULL)
+		free(memory.nametable1);
+
+	if (memory.nametable2 != NULL)
+		free(memory.nametable2);
+
+	if (memory.nametable3 != NULL)
+		free(memory.nametable3);
+
+	if (memory.paletteram != NULL)
+		free(memory.paletteram);
+
+	memory.ram = (BYTE*)calloc(0x800, sizeof(BYTE));
+	memory.ppureg = (BYTE*)calloc(8, sizeof(BYTE));
+	memory.apureg = (BYTE*)calloc(0x20, sizeof(BYTE));
+	memory.exprom = (BYTE*)calloc(0x1FDF, sizeof(BYTE));
+	memory.sram = (BYTE*)calloc(0x2000, sizeof(BYTE));
+
+	memory.pattern0 = (BYTE*)calloc(0x1000, sizeof(BYTE));
+	memory.pattern1 = (BYTE*)calloc(0x1000, sizeof(BYTE));
+	memory.nametable0 = (BYTE*)calloc(0x400, sizeof(BYTE));
+	memory.nametable1 = (BYTE*)calloc(0x400, sizeof(BYTE));
+	memory.nametable2 = (BYTE*)calloc(0x400, sizeof(BYTE));
+	memory.nametable3 = (BYTE*)calloc(0x400, sizeof(BYTE));
+	memory.paletteram = (BYTE*)calloc(0x20, sizeof(BYTE));
 }
 
 static BYTE* decodecpu(WORD addr) {
@@ -64,22 +93,63 @@ static BYTE* decodecpu(WORD addr) {
 	return 0;
 }
 
-BYTE Memory_ReadByte(WORD addr) {
-	return *(decodecpu(addr));
+static BYTE* decodeppu(WORD addr) {
+	// Handle nametable mirrors
+	if (addr >= 0x3000 && addr < 0x3F00)
+		addr -= 0x1000;
+
+	// Pattern table 0
+	if (addr < 0x1000)
+		return pattern0 + addr;
+
+	// Pattern table 1
+	else if (addr >= 0x1000 && addr < 0x2000)
+		return pattern1 + (addr - 0x1000);
+
+	// Nametable 0
+	else if (addr >= 0x2000 && addr < 0x2400)
+		return nametable0 + (addr - 0x2000);
+
+	// Nametable 1
+	else if (addr >= 0x2400 && addr < 0x2800)
+		return nametable1 + (addr - 0x2400);
+
+	// Nametable 2
+	else if (addr >= 0x2800 && addr < 0x2C00)
+		return nametable2 + (addr - 0x2800);
+
+	// Nametable 3
+	else if (addr >= 0x2C00 && addr < 0x3000)
+		return nametable3 + (addr - 0x2C00);
+
+	// Palette RAM indices + mirrors
+	else if (addr >= 0x3F00 && addr <= 0x3FFF)
+		return paletteram + ((addr - 0x3F00) % 0x20);
 }
 
-WORD Memory_ReadWord(WORD addr) {
-	return (WORD)Memory_ReadByte(addr) | ((WORD)Memory_ReadByte(addr + 1) << 8);
+BYTE Memory_ReadByte(int map, WORD addr) {
+	if (map == MAP_CPU)
+		return *(decodecpu(addr));
+	else if (map == MAP_PPU)
+		return *(decodeppu(addr));
+	return 0;
 }
 
-void Memory_WriteByte(WORD addr, BYTE val) {
+WORD Memory_ReadWord(int map, WORD addr) {
+	return (WORD)Memory_ReadByte(map, addr) | ((WORD)Memory_ReadByte(map, addr + 1) << 8);
+}
+
+void Memory_WriteByte(int map, WORD addr, BYTE val) {
 	// TODO: write protection
-	*(decodecpu(addr)) = val;
+	if (map == MAP_CPU)
+		*(decodecpu(addr)) = val;
+	else if (map == MAP_PPU)
+		*(decodeppu(addr)) = val;
 }
 
-void Memory_WriteWord(WORD addr, WORD val) {
-	Memory_WriteByte(addr, (BYTE)(val & 0x00FF));
-	Memory_WriteByte(addr + 1, (BYTE)((val & 0xFF00) >> 8));
+void Memory_WriteWord(int map, WORD addr, WORD val) {
+	Memory_WriteByte(map, addr, (BYTE)(val & 0x00FF));
+	Memory_WriteByte(map, addr + 1, (BYTE)((val & 0xFF00) >> 8));
 }
 
 #ifdef DEBUG_MODE
@@ -101,7 +171,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte((WORD)(i + k));
+				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -124,7 +194,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte((WORD)(i + k));
+				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -146,7 +216,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte((WORD)(i + k));
+				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -168,7 +238,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte((WORD)(i + k));
+				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -190,7 +260,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte((WORD)(i + k));
+				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -212,7 +282,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte((WORD)(i + k));
+				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -234,7 +304,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte((WORD)(i + k));
+				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
 				fprintf(fp, "%02X ", val);
 			}
 

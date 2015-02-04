@@ -6,7 +6,7 @@ CPU cpu;
 
 /* --- Stack operations --- */
 static void pushb(BYTE val) {
-	Memory_WriteByte((STACK_ADDR | cpu.SP--), val);
+	Memory_WriteByte(MAP_CPU, (STACK_ADDR | cpu.SP--), val);
 }
 
 static void pushw(WORD val) {
@@ -15,7 +15,7 @@ static void pushw(WORD val) {
 }
 
 static BYTE pullb() {
-	return Memory_ReadByte((STACK_ADDR | ++cpu.SP));
+	return Memory_ReadByte(MAP_CPU, (STACK_ADDR | ++cpu.SP));
 }
 
 static WORD pullw() {
@@ -105,7 +105,7 @@ void CPU_Interrupt_IRQ() {
 	pushw(cpu.PC);
 	pushb(cpu.S);
 	SET_FLAG(FLAG_I);
-	cpu.PC = Memory_ReadWord(0xFFFE);
+	cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFE);
 }
 
 void CPU_Interrupt_NMI() {
@@ -113,18 +113,18 @@ void CPU_Interrupt_NMI() {
 	pushw(cpu.PC);
 	pushb(cpu.S);
 	SET_FLAG(FLAG_I);
-	cpu.PC = Memory_ReadWord(0xFFFA);
+	cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFA);
 }
 
 void CPU_Interrupt_RESET() {
-	cpu.PC = Memory_ReadWord(0xFFFC);
+	cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFC);
 	cpu.SP = 0xFD;
 	cpu.S |= 0x24;
 }
 
 /* Re-initialize all CPU registers and variables */
 void CPU_Reset() {
-	cpu.PC = Memory_ReadWord(0xFFFC);
+	cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFC);
 	cpu.A = 0;
 	cpu.X = 0;
 	cpu.Y = 0;
@@ -159,7 +159,7 @@ void CPU_Step() {
 	}
 
 	/* Fetch opcode */
-	cpu.opcode = Memory_ReadByte(cpu.PC++);
+	cpu.opcode = Memory_ReadByte(MAP_CPU, cpu.PC++);
 
 #ifdef DEBUG_MODE
 	disassemble1();
@@ -171,7 +171,7 @@ void CPU_Step() {
 
 	/* Cache operand value */
 	if (mode != ACC && mode != IMP)
-		cpu.operand = Memory_ReadByte(cpu.operaddr);
+		cpu.operand = Memory_ReadByte(MAP_CPU, cpu.operaddr);
 	else
 		cpu.operand = 0;
 
