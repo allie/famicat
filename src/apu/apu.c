@@ -44,6 +44,7 @@ void APU_Init() {
     }
     apu.square1.num = 1;
     apu.square2.num = 2;
+    apu.noise.shift = 1;
 }
 
 void APU_Step() {
@@ -71,13 +72,13 @@ void APU_Push() {
     Audio_AddSample(apu.sample);
 }
 
-void APU_HipassStrong() {
+void APU_HiPassStrong() {
     SWORD sample = apu.sample;
     apu.hipass_strong += ((((int64_t)sample << 16) - (apu.hipass_strong >> 16 )) * HI_PASS_STRONG) >> 16;
     apu.sample = (SWORD)((int64_t)sample - (apu.hipass_strong >> 32));
 }
 
-void APU_HipassWeak() {
+void APU_HiPassWeak() {
     SWORD sample = apu.sample;
     apu.hipass_weak += ((((int64_t)sample << 16) - (apu.hipass_weak >> 16 )) * HI_PASS_WEAK) >> 16;
     apu.sample = (SWORD)((int64_t)sample - (apu.hipass_weak >> 32));
@@ -99,7 +100,7 @@ void APU_FrameSequencerStep() {
         if (!apu.square2.halt && apu.square2.length > 0)
             apu.square2.length--;
 
-        if (!apu.triangle.halt && apu.triangle.length > 0)
+        if (!apu.triangle.length_halt && apu.triangle.length > 0)
             apu.triangle.length--;
 
         if(!apu.noise.halt && apu.noise.length > 0)
@@ -164,7 +165,26 @@ void APU_ClockEnvelope(Envelope *envelope) {
 }
 
 void APU_ClockSquare(Square *square) {
-
+    square->timer--;
+    if (square->sequencer_reload) {
+        square->sequencer_count = square->sequencer_reload = 0;
+    }
+    if (square->timer == 0) {
+        square->timer = square->period + 1;
+        square->timer_count++;
+    }
+    if (square->timer_count == 2) {
+        if (square->sequencer_count++ == 8)
+            square->sequencer_count = 0;
+        square->timer_count = 0;
+        if (square->length > 0 && square_lookup[square->duty_cycle * 8 + square->sequencer_count]) {
+            square->sample = square->envelope.volume;
+        }
+        else
+            square->sample = 0;
+    }
+    else
+        square->sample = 0;
     /*
     if (square->length > 0 && square->timer > 7) {
         if (square->timer_count == 0) {
@@ -190,7 +210,7 @@ void APU_ClockTriangle() {
     if (apu.triangle.length > 0 && apu.triangle.counter > 0) {
         if (apu.triangle.timer_count == 0) {
             apu.triangle.lookup_counter = (apu.triangle.lookup_counter + 1) % 32;
-            apu.triangle.timer_count = (apu.triangle.timer_period + 1) * 2;
+            apu.triangle.timer_count = apu.triangle.timer_period + 1; //mulitply by two maybe?
         }
         apu.triangle.sample = triangle_lookup[apu.triangle.lookup_counter];
         apu.triangle.timer_count--;
@@ -202,6 +222,9 @@ void APU_ClockLinearCounter() {
         apu.triangle.counter = apu.triangle.linear_reload;
     else if (apu.triangle.counter > 0)
         apu.triangle.counter--;
+
+    if(!apu.triangle.control)
+        apu.triangle.halt = 0;
 
 }
 
@@ -228,7 +251,7 @@ void APU_ClockNoise() {
 
         feedback = (apu.noise.shift & 0x01) ^ tmp;
         apu.noise.shift = (apu.noise.shift >> 1) | (feedback << 14);
-        apu.noise.timer_count = apu.noise.timer;
+        apu.noise.timer_count = apu.noise.timer_period;
     }
 }
 
@@ -339,7 +362,6 @@ void APU_WriteSquare2Low(BYTE val) {
 
 void APU_WriteSquare2High(BYTE val) {
     /* llll lppp   length index, period high */
-    val = Memory_ReadByte(0x4003 + offset);
     apu.square2.length = length_lookup[val >> 3];
     apu.square2.period = (apu.square2.period & 0x00FF) | ((val & 0x07) << 8);
     apu.square2.sequencer_reload = 1;
@@ -347,7 +369,7 @@ void APU_WriteSquare2High(BYTE val) {
 
 void APU_WriteTriangleControl(BYTE val) {
     /* clll llll   control, linear counter load */
-    apu.triangle.control = apu.triangle.length_halt = val >> 7;
+    apu.triangle.control = apu.triangle.halt = val >> 7;
     apu.triangle.linear_reload = val & 0x7F;
 }
 
@@ -360,6 +382,7 @@ void APU_WriteTriangleHigh(BYTE val) {
     /* llll lppp   length index, period high */
     apu.triangle.length = length_lookup[val >> 3];
     apu.triangle.timer_period |= val & 0x07;
+    apu.triangle.length_reload = 1;
 }
 
 void APU_WriteNoiseBase(BYTE val) {

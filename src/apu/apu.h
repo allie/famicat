@@ -43,8 +43,8 @@ typedef struct {
     BYTE halt;
     BYTE length;
     DWORD counter;
-    DWORD timer;
-    DWORD timer_count;
+    WORD timer;
+    WORD timer_count;
     WORD timer_period;
     BYTE linear_halt;
     BYTE linear_reload;
