@@ -131,8 +131,11 @@ static BYTE* decodeppu(WORD addr) {
 }
 
 BYTE Memory_ReadByte(int map, WORD addr) {
-	if (map == MAP_CPU)
+	if (map == MAP_CPU) {
+		if (addr == 0x4015)
+			return APU_Read();
 		return *(decodecpu(addr));
+	}
 	else if (map == MAP_PPU)
 		return *(decodeppu(addr));
 	return 0;
