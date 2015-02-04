@@ -43,8 +43,8 @@ int main(int argc, char* argv[]) {
 	double current = 0.0;
 
 	for (int i = 0; i < 88200; i++) {
-		Audio_AddSample((sin(current) - 0.5) * 0xFFFF);
-		current += (pi2 / 256);
+		Audio_AddSample((sin(current) - 0.5) * 0x2000);
+		current += (pi2 / 128);
 	}
 
 	while (1) {
