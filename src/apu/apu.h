@@ -4,6 +4,7 @@
 #include "../common.h"
 #include "../memory/memory.h"
 #include "../audio/core.h"
+#include "../cpu/cpu.h"
 
 #define HI_PASS_STRONG 225574
 #define HI_PASS_WEAK 57593
@@ -24,6 +25,7 @@ typedef struct {
     BYTE halt;
     BYTE length;
     WORD timer;
+    BYTE timer_count;
     WORD period;
     BYTE sweep_enable;
     BYTE sweep_period;
@@ -32,7 +34,8 @@ typedef struct {
     BYTE sweep_negate;
     BYTE sweep_shift;
     BYTE duty_cycle;
-    BYTE duty_count;
+    BYTE sequencer_count;
+    BYTE sequencer_reload;
     BYTE num;
     SWORD sample;
 } Square;
@@ -44,9 +47,7 @@ typedef struct {
     BYTE length;
     DWORD counter;
     WORD timer;
-    WORD timer_count;
-    WORD timer_period;
-    BYTE linear_halt;
+    WORD period;
     BYTE linear_reload;
     BYTE lookup_counter;
     SWORD sample;
@@ -54,37 +55,32 @@ typedef struct {
 
 typedef struct {
     Envelope envelope;
-    BYTE period;
     BYTE enabled;
     BYTE mode;
     BYTE shift;
     BYTE halt;
     BYTE length;
-    DWORD timer;
-    DWORD timer_count;
-    WORD timer_period;
+    WORD timer;
+    WORD period;
     SWORD sample;
 } Noise;
 
 typedef struct {
     BYTE enabled;
-    BYTE irq_enable;
+    BYTE silence;
+    BYTE shift;
+    BYTE irq_disable;
     BYTE irq_throw;
     BYTE loop_enable;
-    BYTE rate_index;
-    BYTE rate_counter;
-    BYTE direct_load;
-    BYTE direct_counter;
-    WORD data;
     WORD sample_address;
-    WORD current_address;
+    WORD sample_address_start;
+    BYTE sample_buffer;
     BYTE sample_length;
-    BYTE sample_counter;
-    BYTE shift_counter;
-    WORD frequency;
-    BYTE has_sample;
-    DWORD timer;
-    WORD timer_period;
+    BYTE sample_length_start;
+    WORD period;
+    WORD timer;
+    WORD dac;
+    WORD dac_counter;
     SWORD sample;
 } DMC;
 
@@ -93,20 +89,18 @@ typedef struct {
     Triangle triangle;
     Noise noise;
     DMC dmc;
-    BYTE irq_enable;
+    BYTE irq_disable;
 
     BYTE frame_irq_throw;
     BYTE frame_mode;
     int frame_counter;
-    int frame_tick;
-    int last_frame_tick;
+    BYTE frame_tick;
 
     int64_t hipass_strong;
     int64_t hipass_weak;
 
-    double pulseOut[31];
-    double tndOut[203];
-    double output;
+    double pulse_out[31];
+    double tnd_out[203];
     SWORD sample;
 } APU;
 
@@ -117,18 +111,37 @@ void APU_ClockSquare(Square*);
 void APU_ClockNoise();
 void APU_ClockTriangle();
 void APU_ClockDMC();
-void APU_Read();
-void APU_Write(WORD addr);
-void APU_WriteSquare(Square*);
-void APU_WriteTriangle();
-void APU_WriteNoise();
-void APU_WriteDMC();
-void APU_WriteCommon();
-void APU_HipassStrong();
-void APU_HipassWeak();
+
+BYTE APU_Read();
+void APU_Write(WORD addr, BYTE val);
+void APU_WriteSquare1Control(BYTE);
+void APU_WriteSquare1Sweep(BYTE);
+void APU_WriteSquare1Low(BYTE);
+void APU_WriteSquare1High(BYTE);
+void APU_WriteSquare2Control(BYTE);
+void APU_WriteSquare2Sweep(BYTE);
+void APU_WriteSquare2Low(BYTE);
+void APU_WriteSquare2High(BYTE);
+void APU_WriteTriangleControl(BYTE);
+void APU_WriteTriangleLow(BYTE);
+void APU_WriteTriangleHigh(BYTE);
+void APU_WriteNoiseBase(BYTE);
+void APU_WriteNoisePeriod(BYTE);
+void APU_WriteNoiseLength(BYTE);
+void APU_WriteDMCBase(BYTE);
+void APU_WriteDMCSample(BYTE);
+void APU_WriteDMCSampleAddress(BYTE);
+void APU_WriteDMCSampleLength(BYTE);
+void APU_WriteFlags1(BYTE);
+void APU_WriteFlags2(BYTE);
+
+void APU_HiPassStrong();
+void APU_HiPassWeak();
 void APU_Push();
 void APU_FrameSequencerStep();
 void APU_ClockSweep(Square*);
-void APU_ClockDecay(Envelope*);
+void APU_ClockEnvelope(Envelope*);
+void APU_ClockLengthsAndSweeps();
+void APU_ClockLinearCounter();
 
 #endif

@@ -1,5 +1,6 @@
 #include "memory.h"
 #include "../cart/cart.h"
+#include "../apu/apu.h"
 
 Memory memory;
 extern Cart cart;
@@ -67,7 +68,7 @@ static BYTE* decodecpu(WORD addr) {
 
 	// APU registers
 	else if (addr >= 0x4000 && addr < 0x4020)
-		return memory.apureg + (addr - 0x4000);
+		return memory.apureg;
 
 	// Cartridge expansion ROM
 	else if (addr >= 0x4020 && addr < 0x6000)
@@ -143,8 +144,13 @@ WORD Memory_ReadWord(int map, WORD addr) {
 
 void Memory_WriteByte(int map, WORD addr, BYTE val) {
 	// TODO: write protection
-	if (map == MAP_CPU)
-		*(decodecpu(addr)) = val;
+	if (map == MAP_CPU) {
+		BYTE *block = decodecpu(addr);
+		if (block == memory.apureg)
+			APU_Write(addr, val);
+		else
+			*block = val;
+	}
 	else if (map == MAP_PPU)
 		*(decodeppu(addr)) = val;
 }
@@ -212,7 +218,7 @@ void Memory_Dump() {
 	fprintf(fp, "--------------------------------------------------------\n");
 	fprintf(fp, "APU & I/O registers: 0x4000 - 0x401F\n");
 	fprintf(fp, "--------------------------------------------------------\n");
-	
+
 	for (int i = 0x4000; i < 0x401F; i += 16) {
 		fprintf(fp, "%04X  ", i);
 
@@ -234,7 +240,7 @@ void Memory_Dump() {
 	fprintf(fp, "--------------------------------------------------------\n");
 	fprintf(fp, "Cartridge expansion ROM: 0x4020 - 0x5FFF\n");
 	fprintf(fp, "--------------------------------------------------------\n");
-	
+
 	for (int i = 0x4020; i < 0x5FFF; i += 16) {
 		fprintf(fp, "%04X  ", i);
 
@@ -256,7 +262,7 @@ void Memory_Dump() {
 	fprintf(fp, "--------------------------------------------------------\n");
 	fprintf(fp, "SRAM: 0x6000 - 0x7FFF\n");
 	fprintf(fp, "--------------------------------------------------------\n");
-	
+
 	for (int i = 0x6000; i < 0x7FFF; i += 16) {
 		fprintf(fp, "%04X  ", i);
 
@@ -278,7 +284,7 @@ void Memory_Dump() {
 	fprintf(fp, "--------------------------------------------------------\n");
 	fprintf(fp, "PRG ROM 1: 0x8000 - 0xBFFF\n");
 	fprintf(fp, "--------------------------------------------------------\n");
-	
+
 	for (int i = 0x8000; i < 0xBFFF; i += 16) {
 		fprintf(fp, "%04X  ", i);
 
@@ -300,7 +306,7 @@ void Memory_Dump() {
 	fprintf(fp, "--------------------------------------------------------\n");
 	fprintf(fp, "PRG ROM 2: 0xC000 - 0xFFFF\n");
 	fprintf(fp, "--------------------------------------------------------\n");
-	
+
 	for (int i = 0xC000; i < 0xFFFF; i += 16) {
 		fprintf(fp, "%04X  ", i);
 
