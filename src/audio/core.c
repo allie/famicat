@@ -6,6 +6,7 @@ static WORD samplesize = 1024;
 static SDL_AudioSpec* desired;
 static SDL_AudioSpec* audio;
 static SWORD* samples;
+static SWORD* lastchunk;
 static int current;
 
 static Queue* queue;
@@ -14,11 +15,15 @@ void Audio_Callback(void* userdata, Uint8* stream, int len) {
 	Queue* q = (Queue*)userdata;
 
 	if (q->size == 0) {
-		memset(stream, 0, len);
+		if (lastchunk != NULL)
+			memcpy(stream, lastchunk, len);
+		else
+			memset(stream, 0, len);
 	} else {
 		SWORD* buffer = (SWORD*)Queue_Dequeue(q);
 		memcpy(stream, buffer, len);
-		free(buffer);
+		free(lastchunk);
+		lastchunk = buffer;
 	}
 }
 
@@ -46,6 +51,7 @@ int Audio_Init() {
 	SDL_PauseAudio(0);
 
 	samples = (SWORD*)malloc(samplesize * sizeof(SWORD));
+	lastchunk = NULL;
 
 	return 1;
 }
