@@ -100,31 +100,33 @@ static BYTE* decodeppu(WORD addr) {
 
 	// Pattern table 0
 	if (addr < 0x1000)
-		return pattern0 + addr;
+		return memory.pattern0 + addr;
 
 	// Pattern table 1
 	else if (addr >= 0x1000 && addr < 0x2000)
-		return pattern1 + (addr - 0x1000);
+		return memory.pattern1 + (addr - 0x1000);
 
 	// Nametable 0
 	else if (addr >= 0x2000 && addr < 0x2400)
-		return nametable0 + (addr - 0x2000);
+		return memory.nametable0 + (addr - 0x2000);
 
 	// Nametable 1
 	else if (addr >= 0x2400 && addr < 0x2800)
-		return nametable1 + (addr - 0x2400);
+		return memory.nametable1 + (addr - 0x2400);
 
 	// Nametable 2
 	else if (addr >= 0x2800 && addr < 0x2C00)
-		return nametable2 + (addr - 0x2800);
+		return memory.nametable2 + (addr - 0x2800);
 
 	// Nametable 3
 	else if (addr >= 0x2C00 && addr < 0x3000)
-		return nametable3 + (addr - 0x2C00);
+		return memory.nametable3 + (addr - 0x2C00);
 
 	// Palette RAM indices + mirrors
 	else if (addr >= 0x3F00 && addr <= 0x3FFF)
-		return paletteram + ((addr - 0x3F00) % 0x20);
+		return memory.paletteram + ((addr - 0x3F00) % 0x20);
+
+	return 0;
 }
 
 BYTE Memory_ReadByte(int map, WORD addr) {
