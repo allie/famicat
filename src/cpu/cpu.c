@@ -140,6 +140,8 @@ void CPU_Reset() {
 
 /* Execute one CPU instruction */
 DWORD CPU_Step() {
+	DWORD lastcycles = cpu.cycles;
+
 	/* Check for interrupts */
 	switch(cpu.interrupt){
 		case IRQ:
@@ -185,6 +187,5 @@ DWORD CPU_Step() {
 	/* Add cycles to the total cycle count */
 	cpu.cycles += cycles[cpu.opcode];
 
-	// TODO: penalties
-	return cycles[cpu.opcode];
+	return cpu.cycles - lastcycles;
 }

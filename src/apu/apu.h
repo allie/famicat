@@ -94,7 +94,8 @@ typedef struct {
     BYTE frame_irq_throw;
     BYTE frame_mode;
     int frame_counter;
-    BYTE frame_tick;
+    int frame_tick;
+    int last_frame_tick;
 
     int64_t hipass_strong;
     int64_t hipass_weak;
@@ -139,6 +140,7 @@ void APU_HiPassStrong();
 void APU_HiPassWeak();
 void APU_Push();
 void APU_FrameSequencerStep();
+void APU_FrameSequencerStep2();
 void APU_ClockSweep(Square*);
 void APU_ClockEnvelope(Envelope*);
 void APU_ClockLengthsAndSweeps();

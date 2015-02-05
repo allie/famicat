@@ -74,7 +74,7 @@ void APU_Step() {
     else
         apu.dmc.sample = 0;
 
-    APU_Push();
+    //APU_Push();
 }
 
 void APU_Push() {
@@ -128,6 +128,21 @@ void APU_FrameSequencerStep() {
 
         apu.frame_counter = 0;
     }
+}
+
+void APU_FrameSequencerStep2() {
+    apu.frame_tick++;
+
+    if (apu.frame_tick == 1 || apu.frame_tick == apu.frame_counter - 1)
+        APU_ClockLengthsAndSweeps();
+
+    APU_ClockEnvelope(&apu.square1.envelope);
+    APU_ClockEnvelope(&apu.square2.envelope);
+    APU_ClockEnvelope(&apu.noise.envelope);
+    APU_ClockLinearCounter();
+
+    if (apu.frame_tick >= apu.frame_counter)
+        apu.frame_tick = 0;
 }
 
 void APU_ClockLengthsAndSweeps() {
@@ -499,8 +514,12 @@ void APU_WriteFlags2(BYTE val) {
     /* fd-- ----   5-frame cycle, disable frame interrupt */
     apu.frame_mode = val >> 7;
     apu.irq_disable = (val >> 6) & 0x01;
-    if(apu.frame_mode)
-        APU_FrameSequencerStep();
+    if(apu.frame_mode) {
+        apu.frame_counter = 5;
+        APU_FrameSequencerStep2();
+    } else {
+        apu.frame_counter = 4;
+    }
 }
 
 BYTE APU_Read() {

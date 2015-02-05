@@ -29,14 +29,18 @@ int main(int argc, char* argv[]) {
 
 	if (argc > 1) {
 		Cart_Load(argv[1]);
-
 		CPU_Reset();
+		APU_Init();
 	} else {
 		printf("NOTE: No ROM file supplied.\n");
 	}
 
 	SDL_Texture* tex = Graphics_LoadPNG("splash", "res/splash.png");
 	int splash = (tex) ? Sprite_Add(tex, 512, 480) : -1;
+
+	int odd;
+	int lastaputick;
+	int flip;
 
 	while (1) {
 		Timer_UpdateAll();
@@ -51,15 +55,29 @@ int main(int argc, char* argv[]) {
 
 		Sprite_Render(splash, 0, 0);
 
-		int cycles = CPU_Step();
+		while (cpu.cycles < (CLOCK_SPEED / 60)) {
+			int cycles = CPU_Step();
 
-		for (int i = 0; i < cycles; i++) {
-			APU_FrameSequencerStep();
-			APU_FrameSequencerStep();
-			APU_Step();
+			for (int i = 0; i < cycles; i++)
+				APU_Step();
+
+			if (cpu.cycles - apu.last_frame_tick >= (CLOCK_SPEED / 240)) {
+				APU_FrameSequencerStep2();
+				apu.last_frame_tick = cpu.cycles;
+			}
+
+			if (cpu.cycles - lastaputick >= ((CLOCK_SPEED / 44100) + flip)) {
+				APU_Push();
+				lastaputick = cpu.cycles;
+				flip = (flip + 1) & 0x1;
+			}
 		}
 
+		cpu.cycles -= (CLOCK_SPEED / 60);
+
 		Graphics_Present();
+
+		SDL_Delay(17);
 	}
 
 	Graphics_Destroy();
