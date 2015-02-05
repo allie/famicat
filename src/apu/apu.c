@@ -51,37 +51,33 @@ void APU_Init() {
 void APU_Step() {
     if (apu.square1.enabled)
         APU_ClockSquare(&apu.square1);
-    else
-        apu.square1.sample = 0;
 
     if (apu.square2.enabled)
         APU_ClockSquare(&apu.square2);
-    else
-        apu.square2.sample = 0;
 
     if (apu.triangle.enabled)
         APU_ClockTriangle();
-    else
-        apu.triangle.sample = 0;
 
     if (apu.noise.enabled)
         APU_ClockNoise();
-    else
-        apu.noise.sample = 0;
 
     if (apu.dmc.enabled)
         APU_ClockDMC();
-    else
-        apu.dmc.sample = 0;
 
-    //APU_Push();
+    APU_Push();
 }
 
 void APU_Push() {
-    APU_MixOutput();
-    APU_HiPassStrong();
-    APU_HiPassWeak();
-    Audio_AddSample(apu.sample);
+    apu.push_tick++;
+    if(apu.push_tick >= 40.5) {
+        APU_MixOutput();
+        printf("%04X\t", apu.sample);
+        APU_HiPassStrong();
+        APU_HiPassWeak();
+        printf("%04X\n", apu.sample);
+        Audio_AddSample(apu.sample);
+        apu.push_tick = 0;
+    }
 }
 
 void APU_HiPassStrong() {
@@ -102,7 +98,7 @@ void APU_MixOutput() {
 
 void APU_FrameSequencerStep() {
     apu.frame_counter++;
-    if(apu.frame_counter >= 14915){ // once every 7457.5 clock cycles
+    if(apu.frame_counter >= 7457.5){ // once every 7457.5 clock cycles
         apu.frame_tick++;
         if (!apu.frame_mode) {
             if (!apu.irq_disable && apu.frame_tick == 4)
@@ -188,6 +184,7 @@ void APU_ClockEnvelope(Envelope *envelope) {
     if (envelope->reset) {
         envelope->counter = 15;
         envelope->divider_counter = envelope->period;
+        envelope->reset = 0;
     }
     else {
         envelope->divider_counter--;
@@ -218,9 +215,9 @@ void APU_ClockSquare(Square *square) {
         square->timer_count++;
     }
     if (square->timer_count == 2) {
+        square->timer_count = 0;
         if (square->sequencer_count++ == 8)
             square->sequencer_count = 0;
-        square->timer_count = 0;
         if (square->length > 0 && square_lookup[square->duty_cycle * 8 + square->sequencer_count]) {
             square->sample = square->envelope.volume;
         }
@@ -402,6 +399,7 @@ void APU_WriteSquare1Sweep(BYTE val) {
 void APU_WriteSquare1Low(BYTE val) {
     /* pppp pppp   period low */
     apu.square1.period = (apu.square1.period & 0xFF00) | val;
+    apu.square1.timer = apu.square1.period + 1;
 }
 
 void APU_WriteSquare1High(BYTE val) {
@@ -433,6 +431,7 @@ void APU_WriteSquare2Sweep(BYTE val) {
 void APU_WriteSquare2Low(BYTE val) {
     /* pppp pppp   period low */
     apu.square2.period = (apu.square2.period & 0xFF00) | val;
+    apu.square2.timer = apu.square2.period + 1;
 }
 
 void APU_WriteSquare2High(BYTE val) {
@@ -471,6 +470,7 @@ void APU_WriteNoisePeriod(BYTE val) {
     /* s--- pppp   short mode, period index */
     apu.noise.mode = (val >> 7) & 0x01;
     apu.noise.period = noise_period_lookup[val & 0x0F];
+    apu.noise.timer = apu.noise.period;
 }
 
 void APU_WriteNoiseLength(BYTE val) {

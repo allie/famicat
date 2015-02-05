@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-std=c99 -c -Wall -D_POSIX_C_SOURCE=200112L -DDEBUG_MODE -DUNOFFICIAL_MODE -g
+CFLAGS=-std=c99 -c -Wall -D_POSIX_C_SOURCE=200112L -DUNOFFICIAL_MODE -g
 LDFLAGS=-lSDL2_image -lSDL2 -lm
 SOURCES=$(shell find src -name "*.c")
 OBJECTS=$(SOURCES:.c=.o)

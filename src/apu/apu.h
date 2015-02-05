@@ -5,6 +5,7 @@
 #include "../memory/memory.h"
 #include "../audio/core.h"
 #include "../cpu/cpu.h"
+#include <stdio.h>
 
 #define HI_PASS_STRONG 225574
 #define HI_PASS_WEAK 57593
@@ -96,6 +97,7 @@ typedef struct {
     int frame_counter;
     int frame_tick;
     int last_frame_tick;
+    BYTE push_tick;
 
     int64_t hipass_strong;
     int64_t hipass_weak;
