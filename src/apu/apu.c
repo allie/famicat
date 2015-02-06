@@ -105,16 +105,16 @@ void APU_FrameSequencerStep() {
 }
 
 void APU_ClockLengthsAndSweeps() {
-    if (!apu.square1.halt && apu.square1.length > 0)
+    if (apu.square1.length_enabled && apu.square1.length > 0)
         apu.square1.length--;
 
-    if (!apu.square2.halt && apu.square2.length > 0)
+    if (apu.square2.length_enabled && apu.square2.length > 0)
         apu.square2.length--;
 
-    if (!apu.triangle.halt && apu.triangle.length > 0)
+    if (apu.triangle.length_enabled && apu.triangle.length > 0)
         apu.triangle.length--;
 
-    if(!apu.noise.halt && apu.noise.length > 0)
+    if(apu.noise.length_enabled && apu.noise.length > 0)
         apu.noise.length--;
 
     APU_ClockSweep(&apu.square1);
