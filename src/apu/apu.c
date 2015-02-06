@@ -61,23 +61,16 @@ void APU_Step() {
     if (apu.noise.enabled)
         APU_ClockNoise();
 
-    if (apu.dmc.enabled)
-        APU_ClockDMC();
+    //if (apu.dmc.enabled)
+        //APU_ClockDMC();
 
-    APU_Push();
 }
 
 void APU_Push() {
-    apu.push_tick++;
-    if(apu.push_tick >= 40.5) {
-        APU_MixOutput();
-        printf("%04X\t", apu.sample);
-        APU_HiPassStrong();
-        APU_HiPassWeak();
-        printf("%04X\n", apu.sample);
-        Audio_AddSample(apu.sample);
-        apu.push_tick = 0;
-    }
+    APU_MixOutput();
+    APU_HiPassStrong();
+    APU_HiPassWeak();
+    Audio_AddSample(apu.sample);
 }
 
 void APU_HiPassStrong() {
@@ -93,11 +86,22 @@ void APU_HiPassWeak() {
 }
 
 void APU_MixOutput() {
-    apu.sample = (apu.pulse_out[apu.square1.sample + apu.square2.sample] + apu.tnd_out[3 * apu.triangle.sample + 2 * apu.noise.sample + apu.dmc.sample]) * 40000;
+    apu.sample = (apu.pulse_out[apu.square1.sample + apu.square2.sample] + apu.tnd_out[3 * apu.triangle.sample + 2 * apu.noise.sample]) * 40000;
 }
 
 void APU_FrameSequencerStep() {
+    apu.frame_tick++;
 
+        if (apu.frame_tick == 1 || apu.frame_tick == apu.frame_counter - 1)
+            APU_ClockLengthsAndSweeps();
+
+        APU_ClockDecay(&apu.square1.envelope);
+        APU_ClockDecay(&apu.square2.envelope);
+        APU_ClockDecay(&apu.noise.envelope);
+        APU_ClockLinearCounter();
+
+        if (apu.frame_tick >= apu.frame_counter)
+            apu.frame_tick = 0;
 }
 
 void APU_ClockLengthsAndSweeps() {
@@ -117,28 +121,116 @@ void APU_ClockLengthsAndSweeps() {
     APU_ClockSweep(&apu.square2);
 }
 
-void APU_ClockSweep(Square *square) {
+void APU_ClockSweep(Square* square) {
+    square->sweep_counter--;
 
+    if (square->sweep_counter == 0) {
+        square->sweep_counter = square->sweep_period + 1;
+        if (square->sweep_enabled && square->sweep_counter > 0 && square->shift > 0) {
+            WORD delta = square->timer >> square->shift;
+
+            if (square->negative)
+                square->timer -= delta;
+            else if (square->timer + delta < 0x800)
+                square->timer += delta;
+        }
+    }
+
+    if (square->sweep_reload) {
+        square->sweep_reload = 0;
+        square->sweep_counter = square->sweep_period + 1;
+    }
 }
 
-void APU_ClockEnvelope(Envelope *envelope) {
+void APU_ClockDecay(Envelope *envelope) {
+    envelope->decay_counter--;
 
+    if (envelope->reset) {
+        envelope->reset = 0;
+        envelope->decay_counter = envelope->decay_rate + 1;
+        envelope->counter = 0xF;
+    }
+    else if (envelope->decay_counter == 0) {
+        envelope->decay_counter = envelope->decay_rate + 1;
+
+        if (envelope->counter > 0)
+            envelope->counter--;
+        else if (envelope->loop_enabled)
+            envelope->counter = 0xF;
+    }
+
+    if (envelope->decay_enabled)
+        envelope->volume = envelope->counter;
+    else
+        envelope->volume = envelope->decay_rate;
 }
 
-void APU_ClockSquare(Square *square) {
+void APU_ClockSquare(Square* square) {
+    if (square->length > 0 && square->timer > 7) {
+        if (square->timer_counter == 0) {
+            square->duty_count = (square->duty_count + 1) & 0x7;
+            square->timer_count = (square->timer + 1) << 1;
+        }
 
+        if (square->timer < 8)
+            square->sample = 0;
+        else if (square_lookup[(square->duty_cycle * 8) + square->duty_count])
+            square->sample = square->envelope.volume;
+        else
+            square->sample = 0;
+
+        square->timer_count--;
+    }
+    else
+        square->sample = 0;
 }
 
 void APU_ClockTriangle() {
-
+    if (apu.triangle.length > 0 && apu.triangle.counter > 0) {
+        if (apu.triangle.timer_count == 0) {
+            apu.triangle.lookup_counter = (apu.triangle.lookup_counter + 1) % 32;
+            apu.triangle.timer_count = (apu.triangle.timer + 1) * 2;
+        }
+        apu.triangle.sample = triangle_lookup[apu.triangle.lookup_counter];
+        apu.triangle.timer_count--;
+    }
 }
 
 void APU_ClockLinearCounter() {
+    if (apu.triangle.halt)
+        apu.triangle.counter = apu.triangle.reload_value;
+    else if (apu.triangle.counter > 0)
+        apu.triangle.counter--;
 
+    if (!apu.triangle.control)
+        apu.triangle.halt = 0;
 }
 
 void APU_ClockNoise() {
+    WORD feedback, tmp;
 
+    if (apu.noise.length == 0) {
+        apu.noise.sample = 0;
+        return;
+    }
+
+    if ((apu.noise.shift & 0x1) == 0x0)
+        apu.noise.sample = apu.noise.envelope.volume;
+    else
+        apu.noise.sample = 0;
+
+    apu.noise.timer_count--;
+
+    if (apu.noise.timer_count == 0) {
+        if (apu.noise.mode)
+            tmp = apu.noise.shift & 0x40 >> 6;
+        else
+            tmp = apu.noise.shift & 0x2 >> 1;
+
+        feedback = apu.noise.shift & 0x1 ^ tmp;
+        apu.noise.shift = (apu.noise.shift >> 1) | (feedback << 14);
+        apu.noise.timer_count = apu.noise.timer;
+    }
 }
 
 void APU_ClockDMC() {
@@ -151,11 +243,11 @@ void APU_ClockDMC() {
             apu.dmc.sample_address = 0x8000;
         apu.dmc.sample_length--;
         if (apu.dmc.sample_length == 0) {
-            if (apu.dmc.loop_enable) {
+            if (apu.dmc.loop_enabled) {
                 apu.dmc.sample_address = apu.dmc.sample_address_start;
                 apu.dmc.sample_length = apu.dmc.sample_length_start;
             }
-            else if (!apu.dmc.irq_disable)
+            else if (!apu.dmc.irq_disabled)
                 apu.dmc.irq_throw = 1;
         }
     }
@@ -241,7 +333,7 @@ void APU_Write(WORD addr, BYTE val) {
     }
 }
 
-void APU_WriteSquareControl(Square *square, BYTE val) {
+void APU_WriteSquareControl(Square* square, BYTE val) {
     /* ddle nnnn   duty, loop env/disable length, env disable, vol/env */
     square->envelope.disabled = (((val >> 4) & 0x1) == 1);
     square->length_enabled = ((val & 0x20) != 0x20);
@@ -256,7 +348,7 @@ void APU_WriteSquareControl(Square *square, BYTE val) {
         square->envelope.volume = val & 0xF;
 }
 
-void APU_WriteSquareSweep(Square *square, BYTE val) {
+void APU_WriteSquareSweep(Square* square, BYTE val) {
     /* eppp nsss   enable sweep, period, negative, shift */
     square->sweep_enabled = ((val & 0x80) == 0x80);
     square->sweep_period = (val >> 4) & 0x7;
@@ -267,12 +359,12 @@ void APU_WriteSquareSweep(Square *square, BYTE val) {
     square->sweep_reload = 1;
 }
 
-void APU_WriteSquareLow(Square *square, BYTE val) {
+void APU_WriteSquareLow(Square* square, BYTE val) {
     /* pppp pppp   period low */
     square->timer = (square->timer & 0x700) | val;
 }
 
-void APU_WriteSquareHigh(Square *square, BYTE val) {
+void APU_WriteSquareHigh(Square* square, BYTE val) {
     /* llll lppp   length index, period high */
     square->timer = (square->timer & 0xFF) | ((val & 0x07) << 8);
 
@@ -286,7 +378,7 @@ void APU_WriteSquareHigh(Square *square, BYTE val) {
 void APU_WriteTriangleControl(BYTE val) {
     /* clll llll   control, linear counter load */
     apu.triangle.reload_value = val & 0x7F;
-    apu.triangle.control = val & 0x80 != 0;
+    apu.triangle.control = (val & 0x80) != 0;
     apu.triangle.length_enabled = !apu.triangle.control;
 }
 
@@ -297,7 +389,7 @@ void APU_WriteTriangleLow(BYTE val) {
 
 void APU_WriteTriangleHigh(BYTE val) {
     /* llll lppp   length index, period high */
-    if (a.triangle.enabled)
+    if (apu.triangle.enabled)
         apu.triangle.length = length_lookup[val >> 3];
     apu.triangle.timer = (apu.triangle.timer & 0x00FF) | ((val & 0x07) << 8);
 }
@@ -326,28 +418,26 @@ void APU_WriteNoiseLength(BYTE val) {
 
 void APU_WriteDMCBase(BYTE val) {
     /* il-- ffff   IRQ enable, loop, frequency index */
-    apu.dmc.irq_disabled = ((val & 0x80) == 0x80);
-    apu.dmc.loop_enabled = ((val & 0x40) == 0x40);
-    apu.dmc.rate_index = val & 0xf;
-    apu.dmc.frequency = dmc_period_lookup[val & 0xF];
+    apu.dmc.irq_disabled = ~val >> 7;
+    apu.dmc.loop_enabled = (val >> 6) & 0x01;
+    apu.dmc.period = dmc_period_lookup[val & 0x0F];
+    apu.dmc.timer = apu.dmc.period;
 }
 
 void APU_WriteDMCSample(BYTE val) {
     /* -ddd dddd   DAC */
-    apu.dmc.direct_load = val & 0x7F;
-    apu.dmc.direct_counter = apu.dmc.direct_load;
-    apu.dmc.sample = ((SWORD)(apu.dmc.direct_counter << 1)) + ((SWORD)val & 0x1);
+    apu.dmc.dac = val & 0x7F;
+    apu.dmc.sample = ((SWORD)(apu.dmc.dac << 1)) + ((SWORD)val & 0x1);
 }
 
 void APU_WriteDMCSampleAddress(BYTE val) {
     /* aaaa aaaa   sample address */
-    apu.dmc.sample_address = (WORD)val << 6;
+    apu.dmc.sample_address = apu.dmc.sample_address_start = val * 0x40 + 0xC000;
 }
 
 void APU_WriteDMCSampleLength(BYTE val) {
     /* llll llll   sample length */
-    apu.dmc.sample_length = (val << 4) + 1;
-    apu.dmc.sample_counter = apu.dmc.sample_length;
+    apu.dmc.sample_length = apu.dmc.sample_length_start = val * 0x10 + 1;
 }
 
 void APU_WriteFlags1(BYTE val) {
@@ -365,7 +455,7 @@ void APU_WriteFlags2(BYTE val) {
     apu.irq_disable = (val >> 6) & 0x01;
     if(apu.frame_mode) {
         apu.frame_counter = 5;
-        APU_FrameSequencerStep2();
+        APU_FrameSequencerStep();
     } else {
         apu.frame_counter = 4;
     }

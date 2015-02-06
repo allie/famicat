@@ -58,9 +58,19 @@ int main(int argc, char* argv[]) {
 		while (cpu.cycles < (CLOCK_SPEED / 60)) {
 			int cycles = CPU_Step();
 
-			for (int i = 0; i < cycles; i++) {
-				APU_FrameSequencerStep();
+			for (int i = 0; i < cycles; i++)
 				APU_Step();
+				
+
+			if (cpu.cycles - apu.last_frame_tick >= (CLOCK_SPEED / 240)) {
+				APU_FrameSequencerStep();
+				apu.last_frame_tick = cpu.cycles;
+			}
+
+			if (cpu.cycles - lastaputick >= ((CLOCK_SPEED / 44100) + flip)) {
+				APU_Push();
+				lastaputick = cpu.cycles;
+				flip = (flip + 1) & 0x1;
 			}
 		}
 
