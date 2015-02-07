@@ -3,6 +3,8 @@
 
 #include "../common.h"
 
+#define CLOCK_SPEED 1789773
+
 /* Status flag bitmasks */
 #define FLAG_C 0x01
 #define FLAG_Z 0x02
