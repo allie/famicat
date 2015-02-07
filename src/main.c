@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
 		APU_Init();
 	} else {
 		printf("NOTE: No ROM file supplied.\n");
+		return 0;
 	}
 
 	SDL_Texture* tex = Graphics_LoadPNG("splash", "res/splash.png");
