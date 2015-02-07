@@ -5,6 +5,7 @@
 #include "../memory/memory.h"
 #include "../audio/core.h"
 #include "../cpu/cpu.h"
+#include <stdio.h>
 
 #define HI_PASS_STRONG 225574
 #define HI_PASS_WEAK 57593
@@ -13,8 +14,12 @@ typedef struct {
     WORD volume;
     WORD counter;
     WORD divider_counter;
+    BYTE decay_rate;
+    BYTE decay_enabled;
+    BYTE decay_counter;
+    BYTE loop_enabled;
     BYTE loop;
-    BYTE disable;
+    BYTE disabled;
     WORD period;
     BYTE reset;
 } Envelope;
@@ -24,16 +29,21 @@ typedef struct {
     BYTE enabled;
     BYTE halt;
     BYTE length;
+    BYTE length_enabled;
     WORD timer;
     BYTE timer_count;
+    BYTE timer_counter;
     WORD period;
-    BYTE sweep_enable;
+    WORD shift;
+    BYTE sweep_enabled;
+    BYTE sweep_mode;
     BYTE sweep_period;
     BYTE sweep_counter;
     BYTE sweep_reload;
-    BYTE sweep_negate;
+    BYTE negative;
     BYTE sweep_shift;
     BYTE duty_cycle;
+    BYTE duty_count;
     BYTE sequencer_count;
     BYTE sequencer_reload;
     BYTE num;
@@ -45,9 +55,11 @@ typedef struct {
     BYTE control;
     BYTE halt;
     BYTE length;
+    BYTE length_enabled;
+    BYTE reload_value;
     DWORD counter;
     WORD timer;
-    WORD period;
+    WORD timer_count;
     BYTE linear_reload;
     BYTE lookup_counter;
     SWORD sample;
@@ -56,6 +68,10 @@ typedef struct {
 typedef struct {
     Envelope envelope;
     BYTE enabled;
+    BYTE base_envelope;
+    BYTE noise_length;
+    BYTE length_enabled;
+    BYTE timer_count;
     BYTE mode;
     BYTE shift;
     BYTE halt;
@@ -69,9 +85,9 @@ typedef struct {
     BYTE enabled;
     BYTE silence;
     BYTE shift;
-    BYTE irq_disable;
+    BYTE irq_disabled;
     BYTE irq_throw;
-    BYTE loop_enable;
+    BYTE loop_enabled;
     WORD sample_address;
     WORD sample_address_start;
     BYTE sample_buffer;
@@ -94,7 +110,9 @@ typedef struct {
     BYTE frame_irq_throw;
     BYTE frame_mode;
     int frame_counter;
-    BYTE frame_tick;
+    int frame_tick;
+    int last_frame_tick;
+    BYTE push_tick;
 
     int64_t hipass_strong;
     int64_t hipass_weak;
@@ -114,14 +132,10 @@ void APU_ClockDMC();
 
 BYTE APU_Read();
 void APU_Write(WORD addr, BYTE val);
-void APU_WriteSquare1Control(BYTE);
-void APU_WriteSquare1Sweep(BYTE);
-void APU_WriteSquare1Low(BYTE);
-void APU_WriteSquare1High(BYTE);
-void APU_WriteSquare2Control(BYTE);
-void APU_WriteSquare2Sweep(BYTE);
-void APU_WriteSquare2Low(BYTE);
-void APU_WriteSquare2High(BYTE);
+void APU_WriteSquareControl(Square*, BYTE);
+void APU_WriteSquareSweep(Square*, BYTE);
+void APU_WriteSquareLow(Square*, BYTE);
+void APU_WriteSquareHigh(Square*, BYTE);
 void APU_WriteTriangleControl(BYTE);
 void APU_WriteTriangleLow(BYTE);
 void APU_WriteTriangleHigh(BYTE);
@@ -140,7 +154,7 @@ void APU_HiPassWeak();
 void APU_Push();
 void APU_FrameSequencerStep();
 void APU_ClockSweep(Square*);
-void APU_ClockEnvelope(Envelope*);
+void APU_ClockDecay(Envelope*);
 void APU_ClockLengthsAndSweeps();
 void APU_ClockLinearCounter();
 
