@@ -142,7 +142,7 @@ void APU_ClockSweep(Square* square) {
     }
 }
 
-void APU_ClockDecay(Envelope *envelope) {
+void APU_ClockDecay(Envelope* envelope) {
     envelope->decay_counter--;
 
     if (envelope->reset) {
@@ -289,23 +289,23 @@ void APU_ClockDMC() {
 
 void APU_Write(WORD addr, BYTE val) {
     switch (addr & 0x00FF) {
-        case 0x01:
+        case 0x00:
             APU_WriteSquareControl(&apu.square1, val); break;
-        case 0x02:
+        case 0x01:
             APU_WriteSquareSweep(&apu.square1, val); break;
-        case 0x03:
+        case 0x02:
             APU_WriteSquareLow(&apu.square1, val); break;
-        case 0x04:
+        case 0x03:
             APU_WriteSquareHigh(&apu.square1, val); break;
-        case 0x05:
+        case 0x04:
             APU_WriteSquareControl(&apu.square2, val); break;
-        case 0x06:
+        case 0x05:
             APU_WriteSquareSweep(&apu.square2, val); break;
-        case 0x07:
+        case 0x06:
             APU_WriteSquareLow(&apu.square2, val); break;
-        case 0x08:
+        case 0x07:
             APU_WriteSquareHigh(&apu.square2, val); break;
-        case 0x09:
+        case 0x08:
             APU_WriteTriangleControl(val); break;
         case 0x0A:
             APU_WriteTriangleLow(val); break;
