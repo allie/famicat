@@ -123,12 +123,16 @@ void PPU_WriteAddress(BYTE val) {
 }
 
 void PPU_WriteData(BYTE val) {
-
+	// TODO: Disable during rendering
+	Memory_WriteByte(MAP_PPU, ppu.addr, val);
+	ppu.addr += vram_addr_inc;
 }
 
 // necessary?
 BYTE PPU_ReadData() {
-
+	// TODO: Disable during rendering
+	Memory_ReadByte(MAP_PPU, ppu.addr);
+	ppu.addr += vram_addr_inc;
 }
 
 void PPU_WriteOAMDMA(BYTE val) {

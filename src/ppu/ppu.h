@@ -2,6 +2,8 @@
 #define PPU_H
 
 #include "../common.h"
+#include "../cpu/cpu.h"
+#include "../memory/memory.h"
 
 typedef struct {
 	// Registers
@@ -35,6 +37,8 @@ typedef struct {
 
 	// Scrolling stuff
 	BYTE vram_latch;
+
+	BYTE rendering;
 
 	BYTE* oam;
 } PPU;
