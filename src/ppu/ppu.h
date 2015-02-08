@@ -4,18 +4,28 @@
 #include "../common.h"
 
 typedef struct {
+	// Registers
 	BYTE controller;
 	BYTE mask;
 	BYTE status;
 	BYTE oamaddr;
 	BYTE oamdata;
-	BYTE scrolllatch;
 	BYTE scroll;
-	BYTE addrlatch;
 	BYTE addr;
 	BYTE data;
 	BYTE oddframe;
 	BYTE oamdma;
+
+	// Controller
+	BYTE vram_addr_inc;
+	WORD sprite_pattern_addr;
+	WORD bg_pattern_addr;
+	BYTE sprite_height;
+	BYTE nmi_on_vblank;
+
+	// Scrolling stuff
+	BYTE vram_latch;
+
 	BYTE* oam;
 } PPU;
 
