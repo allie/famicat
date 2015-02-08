@@ -57,17 +57,18 @@ void PPU_WriteController(BYTE val) {
 	+--------- Generate an NMI at the start of the
                vertical blanking interval (0: off; 1: on)
 */
+	if (cpu.cycles >= 30000) { // "about" 30000 cycles
+		ppu.controller = val;
 
-	ppu.controller = val;
+		ppu.vram_addr_inc = ((val >> 2) & 0x1) ? 1: 32;
+		ppu.sprite_pattern_addr = ((val >> 3) & 0x1) * 0x1000;
+		ppu.bg_pattern_addr = ((val >> 4) & 0x1) * 0x1000;
+		ppu.sprite_height = ((val >> 5) & 0x1) ? 8 : 16;
+		ppu.nmi_on_vblank = (val >> 7) & 0x1;
 
-	ppu.vram_addr_inc = ((val >> 2) & 0x1) ? 1: 32;
-	ppu.sprite_pattern_addr = ((val >> 3) & 0x1) * 0x1000;
-	ppu.bg_pattern_addr = ((val >> 4) & 0x1) * 0x1000;
-	ppu.sprite_height = ((val >> 5) & 0x1) ? 8 : 16;
-	ppu.nmi_on_vblank = (val >> 7) & 0x1;
-
-	// Change scroll latch to match base nametable address
-	ppu.vram_latch = (ppu.vram_latch & 0xF3FF) | ((WORD)(val & 0x3) << 10);
+		// Change scroll latch to match base nametable address
+		ppu.vram_latch = (ppu.vram_latch & 0xF3FF) | ((WORD)(val & 0x3) << 10);
+	}
 }
 
 void PPU_WriteMask(BYTE val) {
