@@ -12,10 +12,11 @@ void PPU_Init() {
 	ppu.controller = 0;
 	ppu.mask = 0;
 	ppu.status = 0xA0;
+	ppu.oam_addr = 0;
 	ppu.scroll = 0;
 	ppu.addr = 0;
 	ppu.data = 0;
-	ppu.oddframe = 0;
+	ppu.odd_frame = 0;
 
 	ppu.vram_addr_inc = 1;
 	ppu.sprite_pattern_addr = 0;
@@ -34,6 +35,7 @@ void PPU_Init() {
 
 	ppu.first_write = 1;
 	ppu.vram_temp = 0;
+	ppu.fine_x = 0;
 }
 
 void PPU_Reset() {
@@ -67,7 +69,7 @@ void PPU_WriteController(BYTE val) {
 	ppu.nmi_on_vblank = (val >> 7) & 0x1;
 
 	// Change scroll latch to match base nametable address
-	ppu.vram_latch = (ppu.vram_latch & 0xF3FF) | ((WORD)(val & 0x3) << 10);
+	ppu.vram_temp = (ppu.vram_temp & 0xF3FF) | ((WORD)(val & 0x3) << 10);
 }
 
 void PPU_WriteMask(BYTE val) {
@@ -93,22 +95,23 @@ void PPU_WriteMask(BYTE val) {
 	ppu.emphasize_blue = (val >> 7) & 0x1;
 }
 
-// necessary?
 BYTE PPU_ReadStatus() {
-
+	ppu.status &= 0x7F;
+	ppu.first_write = 1;
+	return ppu.status;
 }
 
 void PPU_WriteOAMAddress(BYTE val) {
-	ppu.oamaddr = val;
+	ppu.oam_addr = val;
 }
 
 void PPU_WriteOAMData(BYTE val) {
-	ppu.oam[ppu.oamaddr++] = val;
+	ppu.oam[ppu.oam_addr++] = val;
 }
 
 // necessary?
 BYTE PPU_ReadOAMData() {
-	return ppu.oam[ppu.oamaddr];
+	return ppu.oam[ppu.oam_addr];
 	// TODO: ignore writes during rendering
 }
 
@@ -141,20 +144,20 @@ void PPU_WriteAddress(BYTE val) {
 void PPU_WriteData(BYTE val) {
 	// TODO: Disable during rendering
 	Memory_WriteByte(MAP_PPU, ppu.addr, val);
-	ppu.addr += vram_addr_inc;
+	ppu.addr += ppu.vram_addr_inc;
 }
 
 // necessary?
 BYTE PPU_ReadData() {
 	// TODO: Disable during rendering
 	Memory_ReadByte(MAP_PPU, ppu.addr);
-	ppu.addr += vram_addr_inc;
+	ppu.addr += ppu.vram_addr_inc;
 }
 
 void PPU_WriteOAMDMA(BYTE val) {
 	WORD addr_high = ((WORD)val << 8);
-	for (BYTE addr_low = 0; addr_low < 256; addr_low++) {
-		ppu.oam[ppu.oamaddr++] = Memory_ReadByte(MAP_CPU, (addr_high | addr_low));
+	for (BYTE addr_low = 0; addr_low <= 255; addr_low++) {
+		ppu.oam[ppu.oam_addr++] = Memory_ReadByte(MAP_CPU, (addr_high | addr_low));
 	}
 	if (cpu.cycles % 2 == 0)
 		CPU_Suspend(514);

@@ -10,12 +10,11 @@ typedef struct {
 	BYTE controller;
 	BYTE mask;
 	BYTE status;
-	BYTE oamaddr;
-	BYTE oamdata;
+	BYTE oam_addr;
 	BYTE scroll;
 	BYTE addr;
 	BYTE data;
-	BYTE oddframe;
+	BYTE odd_frame;
 	BYTE oamdma;
 
 	// Controller
