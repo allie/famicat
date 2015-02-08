@@ -116,11 +116,16 @@ void PPU_WriteScroll(BYTE val) {
 }
 
 void PPU_WriteAddress(BYTE val) {
-	if (ppu.vram_latch == 0) {
-		ppu.vram_latch = val;
+	if (ppu.first_write == 1) {
+		ppu.first_write = 0;
+
+		// clear bits 14-8 (and 15), save 5-0 of val to
+		ppu.vram_temp = (ppu.vram_temp & 0x00FF) | (((WORD)val & 0x3F) << 8);
 	} else {
-		ppu.addr = ((WORD)ppu.vram_latch << 8) | val;
-		ppu.vram_latch = 0;
+		ppu.addr = (ppu.addr & 0xFF00) | val;
+		ppu.first_write = 1;
+		ppu.vram_temp = (ppu.vram_temp & 0x7F00) | val;
+		ppu.addr = ppu.vram_temp;
 	}
 }
 
