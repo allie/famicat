@@ -33,8 +33,10 @@ typedef struct {
 	BYTE emphasize_green;
 	BYTE emphasize_blue;
 
-	// Scrolling stuff
-	BYTE vram_latch;
+	// Scroll
+	BYTE first_write;
+	BYTE vram_temp;
+	BYTE fine_x;
 
 	BYTE* oam;
 } PPU;

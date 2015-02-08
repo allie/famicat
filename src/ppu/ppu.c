@@ -31,7 +31,8 @@ void PPU_Init() {
 	ppu.emphasize_green = 0;
 	ppu.emphasize_blue = 0;
 
-	ppu.vram_latch = 0;
+	ppu.first_write = 1;
+	ppu.vram_temp = 0;
 }
 
 void PPU_Reset() {
@@ -110,7 +111,16 @@ BYTE PPU_ReadOAMData() {
 }
 
 void PPU_WriteScroll(BYTE val) {
+	if (ppu.first_write) {
+		// Horizontal scroll offset
+		ppu.fine_x = val & 0x7;
+		ppu.vram_temp = (ppu.vram_temp & 0x7FE0) | ((val & 0xF8) >> 3);
+	} else {
+		// Vertical scroll offset
+		ppu.vram_temp = (ppu.vram_temp & 0xC1F) | (((WORD)val & 0xF8) << 2) | (((WORD)val & 7) << 12);
+	}
 
+	ppu.first_write = !ppu.first_write;
 }
 
 void PPU_WriteAddress(BYTE val) {
