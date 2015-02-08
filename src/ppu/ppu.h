@@ -23,6 +23,16 @@ typedef struct {
 	BYTE sprite_height;
 	BYTE nmi_on_vblank;
 
+	// Mask
+	BYTE grayscale;
+	BYTE show_bg_left;
+	BYTE show_bg;
+	BYTE show_sprites_left;
+	BYTE show_sprites;
+	BYTE emphasize_red;
+	BYTE emphasize_green;
+	BYTE emphasize_blue;
+
 	// Scrolling stuff
 	BYTE vram_latch;
 

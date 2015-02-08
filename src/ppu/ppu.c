@@ -22,6 +22,15 @@ void PPU_Init() {
 	ppu.sprite_height = 8;
 	ppu.nmi_on_vblank = 0;
 
+	ppu.grayscale = 0;
+	ppu.show_bg_left = 1;
+	ppu.show_bg = 1;
+	ppu.show_sprites_left = 1;
+	ppu.show_sprites = 1;
+	ppu.emphasize_red = 0;
+	ppu.emphasize_green = 0;
+	ppu.emphasize_blue = 0;
+
 	ppu.vram_latch = 0;
 }
 
@@ -60,7 +69,26 @@ void PPU_WriteController(BYTE val) {
 }
 
 void PPU_WriteMask(BYTE val) {
-
+/*
+	7654 3210
+	|||| ||||
+	|||| |||+- Grayscale (0: normal color, 1: produce a greyscale display)
+	|||| ||+-- 1: Show background in leftmost 8 pixels of screen, 0: Hide
+	|||| |+--- 1: Show sprites in leftmost 8 pixels of screen, 0: Hide
+	|||| +---- 1: Show background
+	|||+------ 1: Show sprites
+	||+------- Emphasize red*
+	|+-------- Emphasize green*
+	+--------- Emphasize blue*
+*/
+	ppu.grayscale = val & 0x1;
+	ppu.show_bg_left = (val >> 1) & 0x1;
+	ppu.show_bg = (val >> 2) & 0x1;
+	ppu.show_sprites = (val >> 3) & 0x1;
+	ppu.show_sprites_left = (val >> 4) & 0x1;
+	ppu.emphasize_red = (val >> 5) & 0x1;
+	ppu.emphasize_green = (val >> 6) & 0x1;
+	ppu.emphasize_blue = (val >> 7) & 0x1;
 }
 
 // necessary?
