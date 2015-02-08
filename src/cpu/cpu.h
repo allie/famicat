@@ -36,9 +36,12 @@ typedef struct {
 	BYTE indoperand;
 	DWORD cycles;
 	BYTE interrupt;
+	BYTE suspended;
+	DWORD suspend_cycles;
 } CPU;
 
 void CPU_Reset();
+void CPU_Suspend(DWORD duration);
 DWORD CPU_Step();
 
 #endif
