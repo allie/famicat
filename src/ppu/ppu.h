@@ -38,8 +38,6 @@ typedef struct {
 	// Scrolling stuff
 	BYTE vram_latch;
 
-	BYTE rendering;
-
 	BYTE* oam;
 } PPU;
 

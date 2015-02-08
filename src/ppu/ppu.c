@@ -116,10 +116,12 @@ void PPU_WriteScroll(BYTE val) {
 }
 
 void PPU_WriteAddress(BYTE val) {
-	if (ppu.vram_latch == 0)
+	if (ppu.vram_latch == 0) {
 		ppu.vram_latch = val;
-	else
+	} else {
 		ppu.addr = ((WORD)ppu.vram_latch << 8) | val;
+		ppu.vram_latch = 0;
+	}
 }
 
 void PPU_WriteData(BYTE val) {
