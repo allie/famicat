@@ -98,16 +98,17 @@ BYTE PPU_ReadStatus() {
 }
 
 void PPU_WriteOAMAddress(BYTE val) {
-	oamaddr = val;
+	ppu.oamaddr = val;
 }
 
 void PPU_WriteOAMData(BYTE val) {
-	oam[oamaddr++] = val;
+	ppu.oam[ppu.oamaddr++] = val;
 }
 
 // necessary?
 BYTE PPU_ReadOAMData() {
-	return oam[oamaddr];
+	return ppu.oam[ppu.oamaddr];
+	// TODO: ignore writes during rendering
 }
 
 void PPU_WriteScroll(BYTE val) {
@@ -115,7 +116,10 @@ void PPU_WriteScroll(BYTE val) {
 }
 
 void PPU_WriteAddress(BYTE val) {
-
+	if (ppu.vram_latch == 0)
+		ppu.vram_latch = val;
+	else
+		ppu.addr = ((WORD)ppu.vram_latch << 8) | val;
 }
 
 void PPU_WriteData(BYTE val) {
@@ -130,7 +134,7 @@ BYTE PPU_ReadData() {
 void PPU_WriteOAMDMA(BYTE val) {
 	WORD addr_high = ((WORD)val << 8);
 	for (BYTE addr_low = 0; addr_low < 256; addr_low++) {
-		oam[oamaddr++] = Memory_ReadByte(MAP_CPU, (addr_high | addr_low));
+		ppu.oam[ppu.oamaddr++] = Memory_ReadByte(MAP_CPU, (addr_high | addr_low));
 	}
 	if (cpu.cycles % 2 == 0)
 		CPU_Suspend(514);
