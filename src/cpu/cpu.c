@@ -137,19 +137,16 @@ void CPU_Reset() {
 	cpu.operand = 0;
 	cpu.cycles = 0;
 	cpu.suspended = 0;
-	cpu.suspend_cycles = 0;
 }
 
 void CPU_Suspend(DWORD duration) {
-	cpu.suspended = 1;
-	cpu.suspend_cycles = duration;
+	cpu.suspended = duration;
 }
 
 /* Execute one CPU instruction */
 DWORD CPU_Step() {
 	if (cpu.suspended) {
-		if (--cpu.suspend_cycles == 0)
-			cpu.suspended = 0;
+		cpu.suspended--;
 		return 1;
 	}
 
