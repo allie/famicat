@@ -69,7 +69,7 @@ void PPU_WriteController(BYTE val) {
 		ppu.nmi_on_vblank = (val >> 7) & 0x1;
 
 		// Change scroll latch to match base nametable address
-		ppu.vram_latch = (ppu.vram_latch & 0xF3FF) | ((WORD)(val & 0x3) << 10);
+		ppu.vram_temp = (ppu.vram_temp & 0xF3FF) | ((WORD)(val & 0x3) << 10);
 	}
 }
 
