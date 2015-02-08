@@ -22,3 +22,51 @@ void PPU_Init() {
 void PPU_Reset() {
 	// TODO
 }
+
+void PPU_WriteController(BYTE val) {
+
+}
+
+void PPU_WriteMask(BYTE val) {
+
+}
+
+// necessary?
+BYTE PPU_ReadStatus() {
+
+}
+
+void PPU_WriteOAMAddress(BYTE val) {
+
+}
+
+void PPU_WriteOAMData(BYTE val) {
+
+}
+
+// necessary?
+BYTE PPU_ReadOAMData() {
+
+}
+
+void PPU_WriteScroll(BYTE val) {
+
+}
+
+void PPU_WriteAddress(BYTE val) {
+
+}
+
+void PPU_WriteData(BYTE val) {
+
+}
+
+// necessary?
+BYTE PPU_ReadData() {
+
+}
+
+void PPU_WriteOAMDMA(BYTE val) {
+
+}
+

@@ -22,4 +22,16 @@ typedef struct {
 void PPU_Init();
 void PPU_Reset();
 
+void PPU_WriteController(BYTE val);
+void PPU_WriteMask(BYTE val);
+BYTE PPU_ReadStatus(); // necessary?
+void PPU_WriteOAMAddress(BYTE val);
+void PPU_WriteOAMData(BYTE val);
+BYTE PPU_ReadOAMData(); // necessary?
+void PPU_WriteScroll(BYTE val);
+void PPU_WriteAddress(BYTE val);
+void PPU_WriteData(BYTE val);
+BYTE PPU_ReadData(); // necessary?
+void PPU_WriteOAMDMA(BYTE val);
+
 #endif
