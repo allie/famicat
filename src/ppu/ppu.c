@@ -157,9 +157,10 @@ BYTE PPU_ReadData() {
 
 void PPU_WriteOAMDMA(BYTE val) {
 	WORD addr_high = ((WORD)val << 8);
-	for (int addr_low = 0; addr_low < 256; addr_low++) {
+	BYTE addr_low = 0;
+	do {
 		ppu.oam[ppu.oam_addr++] = Memory_ReadByte(MAP_CPU, (addr_high | (BYTE)addr_low));
-	}
+	} while (++addr_low != 0);
 	if (cpu.cycles % 2 == 0)
 		CPU_Suspend(514);
 	else
