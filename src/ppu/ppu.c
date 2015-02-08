@@ -126,17 +126,16 @@ void PPU_WriteScroll(BYTE val) {
 }
 
 void PPU_WriteAddress(BYTE val) {
-	if (ppu.first_write == 1) {
-		ppu.first_write = 0;
-
-		// clear bits 14-8 (and 15), save 5-0 of val to
+	if (ppu.first_write) {
+		// Clear bits 14-8 (and 15), save 5-0 of val to 13-8 of temp
 		ppu.vram_temp = (ppu.vram_temp & 0x00FF) | (((WORD)val & 0x3F) << 8);
 	} else {
-		ppu.addr = (ppu.addr & 0xFF00) | val;
-		ppu.first_write = 1;
+		// Copy lower 8 bits to temp, set addr to temp value
 		ppu.vram_temp = (ppu.vram_temp & 0x7F00) | val;
 		ppu.addr = ppu.vram_temp;
 	}
+
+	ppu.first_write = !ppu.first_write;
 }
 
 void PPU_WriteData(BYTE val) {
