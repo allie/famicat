@@ -1,6 +1,7 @@
 #include "ppu.h"
 
 PPU ppu;
+extern CPU cpu;
 
 void PPU_Init() {
 	if (ppu.oam != NULL)
@@ -37,16 +38,16 @@ BYTE PPU_ReadStatus() {
 }
 
 void PPU_WriteOAMAddress(BYTE val) {
-
+	oamaddr = val;
 }
 
 void PPU_WriteOAMData(BYTE val) {
-
+	oam[oamaddr++] = val;
 }
 
 // necessary?
 BYTE PPU_ReadOAMData() {
-
+	return oam[oamaddr];
 }
 
 void PPU_WriteScroll(BYTE val) {
@@ -67,6 +68,12 @@ BYTE PPU_ReadData() {
 }
 
 void PPU_WriteOAMDMA(BYTE val) {
-
+	WORD addr_high = ((WORD)val << 8);
+	for (BYTE addr_low = 0; addr_low < 256; addr_low++) {
+		oam[oamaddr++] = Memory_ReadByte(MAP_CPU, (addr_high | addr_low));
+	}
+	if (cpu.cycles % 2 == 0)
+		CPU_Suspend(514);
+	else
+		CPU_Suspend(513);
 }
-
