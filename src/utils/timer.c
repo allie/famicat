@@ -11,30 +11,30 @@ static Timer** timers;
 static int capacity;
 static int count;
 
-#ifdef __MACH__
-
-#include <stdint.h>
-#include <mach/mach_time.h>
-#define CLOCK_MONOTONIC 0
-
-static double timebase = 0.0;
-static unsigned long int timestart = 0;
-
-static void clock_gettime(int clockid, struct timespec* ts) {
-	if (!timestart) {
-		mach_timebase_info_data_t tb;
-		mach_timebase_info(&tb);
-		timebase = tb.numer;
-		timebase /= tb.denom;
-		timestart = mach_absolute_time();
-	}
-
-	double diff = (mach_absolute_time() - timestart) * timebase;
-	ts->tv_sec = diff * (+1.0E-9);
-	ts->tv_nsec = diff - (ts->tv_sec * UINT64_C(1000000000));
-}
-
-#endif
+// #ifdef __MACH__
+//
+// #include <stdint.h>
+// #include <mach/mach_time.h>
+// #define CLOCK_MONOTONIC 0
+//
+// static double timebase = 0.0;
+// static unsigned long int timestart = 0;
+//
+// static void clock_gettime(int clockid, struct timespec* ts) {
+// 	if (!timestart) {
+// 		mach_timebase_info_data_t tb;
+// 		mach_timebase_info(&tb);
+// 		timebase = tb.numer;
+// 		timebase /= tb.denom;
+// 		timestart = mach_absolute_time();
+// 	}
+//
+// 	double diff = (mach_absolute_time() - timestart) * timebase;
+// 	ts->tv_sec = diff * (+1.0E-9);
+// 	ts->tv_nsec = diff - (ts->tv_sec * UINT64_C(1000000000));
+// }
+//
+// #endif
 
 static int Timer_GetFreeId() {
 	if (count == capacity) {
