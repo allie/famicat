@@ -1,6 +1,6 @@
-#include "core.h"
-#include "sprite.h"
-#include "../utils/dictionary.h"
+#include "graphics/core.h"
+#include "graphics/sprite.h"
+#include "utils/dictionary.h"
 
 static SDL_Window* window;
 static SDL_Renderer* renderer;

@@ -1,5 +1,5 @@
-#include "cart.h"
-#include "../memory/memory.h"
+#include "cart/cart.h"
+#include "memory/memory.h"
 #include <string.h>
 
 Cart cart;

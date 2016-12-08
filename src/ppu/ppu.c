@@ -1,4 +1,4 @@
-#include "ppu.h"
+#include "ppu/ppu.h"
 
 PPU ppu;
 extern CPU cpu;

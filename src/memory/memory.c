@@ -1,6 +1,6 @@
-#include "memory.h"
-#include "../cart/cart.h"
-#include "../apu/apu.h"
+#include "memory/memory.h"
+#include "cart/cart.h"
+#include "apu/apu.h"
 
 Memory memory;
 extern Cart cart;

@@ -2,7 +2,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "timer.h"
+#include "utils/timer.h"
 
 static struct timespec last;
 static struct timespec dt;

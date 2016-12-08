@@ -1,4 +1,4 @@
-#include "apu.h"
+#include "apu/apu.h"
 
 BYTE length_lookup[] = {
     0x0A, 0xFE,

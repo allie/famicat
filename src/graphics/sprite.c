@@ -1,6 +1,6 @@
 #include <string.h>
-#include "sprite.h"
-#include "core.h"
+#include "graphics/sprite.h"
+#include "graphics/core.h"
 
 static Sprite** sprites;
 static int capacity;

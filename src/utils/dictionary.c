@@ -1,5 +1,5 @@
 #include <string.h>
-#include "dictionary.h"
+#include "utils/dictionary.h"
 
 /* TODO: This is a very simple implementation of a dictionary structure
          that naively searches through an array.  This needs to be replaced

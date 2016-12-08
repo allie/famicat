@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
 			for (int i = 0; i < cycles; i++)
 				APU_Step();
-				
+
 
 			if (cpu.cycles - apu.last_frame_tick >= (CLOCK_SPEED / 240)) {
 				APU_FrameSequencerStep();

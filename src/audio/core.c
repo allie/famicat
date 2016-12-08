@@ -1,6 +1,6 @@
 #include <string.h>
-#include "core.h"
-#include "../utils/queue.h"
+#include "audio/core.h"
+#include "utils/queue.h"
 
 static WORD samplesize = 1024;
 static SDL_AudioSpec* desired;
