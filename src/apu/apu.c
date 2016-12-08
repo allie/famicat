@@ -227,7 +227,7 @@ void APU_ClockNoise() {
         else
             tmp = apu.noise.shift & 0x2 >> 1;
 
-        feedback = apu.noise.shift & 0x1 ^ tmp;
+        feedback = (apu.noise.shift & 0x1) ^ tmp;
         apu.noise.shift = (apu.noise.shift >> 1) | (feedback << 14);
         apu.noise.timer_count = apu.noise.timer;
     }
