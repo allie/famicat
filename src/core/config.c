@@ -70,7 +70,7 @@ void Config_LoadDefaults() {
 	config.bindings[8].arg = IO_KEY_RESET;
 
 	strcpy(config.bindings[9].name, "debug");
-	config.bindings[9].sym.sym = SDLK_a;
+	config.bindings[9].sym.sym = SDLK_BACKQUOTE;
 	config.bindings[9].sym.mod = KMOD_NONE;
 	config.bindings[9].callback = Debugger_HandleInput;
 	config.bindings[9].arg = DEBUGGER_KEY_TOGGLE;
