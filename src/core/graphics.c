@@ -3,10 +3,9 @@
 
 static SDL_Window* window;
 static SDL_Renderer* renderer;
+static int scale = 1;
 static int width;
 static int height;
-static int lwidth;
-static int lheight;
 
 #include "font.i"
 static SDL_Texture* font;
@@ -19,8 +18,8 @@ int Graphics_Init(int w, int h) {
 		"famicat",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		width,
-		height,
+		GRAPHICS_LWIDTH,
+		GRAPHICS_LHEIGHT,
 		SDL_WINDOW_OPENGL
 	);
 
@@ -69,6 +68,19 @@ void Graphics_RenderHex(unsigned long val, unsigned bytes, unsigned x, unsigned 
 	char hex[17];
 	snprintf(hex, bytes * 2 + 1, "%0*lX", bytes * 2, val);
 	Graphics_RenderString(hex, x, y);
+}
+
+void Graphics_Scale(int direction) {
+	if (direction == GRAPHICS_SCALE_UP) {
+		scale++;
+	} else if (direction == GRAPHICS_SCALE_DOWN && scale > 1) {
+		scale--;
+	}
+
+	width = scale * GRAPHICS_LWIDTH;
+	height = scale * GRAPHICS_LHEIGHT;
+
+	SDL_SetWindowSize(window, width, height);
 }
 
 void Graphics_Clear() {

@@ -1,5 +1,6 @@
 #include "core/config.h"
 #include "core/debugger.h"
+#include "core/graphics.h"
 #include "io/io.h"
 #include <string.h>
 #include <SDL2/SDL.h>
@@ -11,7 +12,7 @@ void Config_Load(const char* path) {
 }
 
 void Config_LoadDefaults() {
-	config.binding_count = 10;
+	config.binding_count = 12;
 	config.bindings = (Keybinding*)malloc(config.binding_count * sizeof(Keybinding));
 
 	strcpy(config.bindings[0].name, "a");
@@ -73,6 +74,18 @@ void Config_LoadDefaults() {
 	config.bindings[9].sym.mod = KMOD_NONE;
 	config.bindings[9].callback = Debugger_HandleInput;
 	config.bindings[9].arg = DEBUGGER_KEY_TOGGLE;
+
+	strcpy(config.bindings[10].name, "scaleup");
+	config.bindings[10].sym.sym = SDLK_EQUALS;
+	config.bindings[10].sym.mod = KMOD_NONE;
+	config.bindings[10].callback = Graphics_Scale;
+	config.bindings[10].arg = GRAPHICS_SCALE_UP;
+
+	strcpy(config.bindings[11].name, "scaledn");
+	config.bindings[11].sym.sym = SDLK_MINUS;
+	config.bindings[11].sym.mod = KMOD_NONE;
+	config.bindings[11].callback = Graphics_Scale;
+	config.bindings[11].arg = GRAPHICS_SCALE_DOWN;
 }
 
 void Config_Write(const char* path) {
