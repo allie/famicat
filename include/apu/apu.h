@@ -3,7 +3,7 @@
 
 #include "../common.h"
 #include "../memory/memory.h"
-#include "../audio/core.h"
+#include "../core/audio.h"
 #include "../cpu/cpu.h"
 #include <stdio.h>
 

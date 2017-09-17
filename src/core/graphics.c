@@ -1,6 +1,4 @@
-#include "graphics/core.h"
-#include "graphics/sprite.h"
-#include "utils/dictionary.h"
+#include "core/graphics.h"
 
 static SDL_Window* window;
 static SDL_Renderer* renderer;
@@ -9,15 +7,13 @@ static int height;
 static int lwidth;
 static int lheight;
 
-static Dictionary* textures;
+static SDL_Texture* font;
 
 int Graphics_Init(int w, int h) {
 	width = w;
 	height = h;
-	lwidth = 512;
-	lheight = 480;
-
-	textures = Dictionary_New();
+	lwidth = 256;
+	lheight = 240;
 
 	window = SDL_CreateWindow(
 		"famicat",
@@ -45,47 +41,30 @@ int Graphics_Init(int w, int h) {
 	}
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-
-	if (lwidth != width || lheight != height)
-		SDL_RenderSetLogicalSize(renderer, lwidth, lheight);
-
-	Sprite_Init();
+	SDL_RenderSetLogicalSize(renderer, lwidth, lheight);
 
 	return 1;
 }
 
-SDL_Texture* Graphics_LoadPNG(const char* key, const char* file) {
-	SDL_Surface* s = IMG_Load(file);
-
-	if (s == NULL) {
-		printf("Error loading PNG: %s\n", IMG_GetError());
-		return NULL;
-	}
-
-	SDL_Texture* t = SDL_CreateTextureFromSurface(renderer, s);
-	SDL_FreeSurface(s);
-
-	if (t == NULL) {
-		printf("Error creating PNG texture: %s\n", SDL_GetError());
-		return NULL;
-	}
-
-	Dictionary_Add(textures, key, t);
-
-	return t;
-}
-
-SDL_Texture* Graphics_LoadPNGDir(const char* path, int recurse) {
-	/* TODO */
-	return NULL;
-}
-
-SDL_Texture* Graphics_GetTexture(const char* key) {
-	return (SDL_Texture*)Dictionary_Get(textures, key);
-}
-
 void Graphics_RenderTexture(SDL_Texture* texture, SDL_Rect* src, SDL_Rect* dst) {
 	SDL_RenderCopy(renderer, texture, src, dst);
+}
+
+void Graphics_DrawString(const char* text, unsigned x, unsigned y) {
+	for (int i = 0; i < strlen(text); i++) {
+		char c = text[i];
+		int tx = c % 16;
+		int ty = c / 16;
+		SDL_Rect src = {tx * 8, ty * 8, 8, 8};
+		SDL_Rect dst = {x * 8 + i * 8, y * 8, 8, 8};
+		SDL_RenderCopy(renderer, font, &src, &dst);
+	}
+}
+
+void Graphics_DrawHex(unsigned long val, unsigned bytes, unsigned x, unsigned y) {
+	char hex[17];
+	snprintf(hex, bytes * 2 + 1, "%0*lX", bytes * 2, val);
+	Graphics_DrawString(hex, x, y);
 }
 
 void Graphics_Clear() {
@@ -103,7 +82,7 @@ void Graphics_Present() {
 }
 
 void Graphics_Destroy() {
-	Dictionary_Destroy(textures);
+	SDL_DestroyTexture(font);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 }

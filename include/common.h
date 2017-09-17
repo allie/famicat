@@ -10,4 +10,9 @@ typedef uint16_t WORD;
 typedef uint32_t DWORD;
 typedef int16_t SWORD;
 
+typedef struct {
+	int x;
+	int y;
+} Vector2;
+
 #endif

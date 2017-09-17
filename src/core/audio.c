@@ -1,5 +1,5 @@
 #include <string.h>
-#include "audio/core.h"
+#include "core/audio.h"
 #include "utils/queue.h"
 
 static WORD samplesize = 1024;

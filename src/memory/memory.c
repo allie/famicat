@@ -1,5 +1,5 @@
 #include "memory/memory.h"
-#include "cart/cart.h"
+#include "memory/cart.h"
 #include "apu/apu.h"
 
 Memory memory;
