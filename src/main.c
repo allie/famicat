@@ -61,6 +61,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	Graphics_Destroy();
+	Audio_Destroy();
+	Debugger_Destroy();
+	Config_Destroy();
+
 	SDL_Quit();
 
 	return 0;
