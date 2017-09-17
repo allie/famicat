@@ -20,13 +20,18 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	if (!Graphics_Init(256, 240))
+	if (!Graphics_Init(256, 240)) {
 		return 0;
+	}
 
-	if (!Audio_Init())
+	if (!Audio_Init()) {
 		return 0;
+	}
 
-	Debugger_Init(); // TODO: return something
+	if (!Debugger_Init()) {
+		return 0;
+	};
+
 	Config_LoadDefaults();
 
 	if (argc > 1) {

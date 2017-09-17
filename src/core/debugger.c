@@ -99,7 +99,7 @@ static void Debugger_RenderCPU() {
 	}
 }
 
-void Debugger_Init() {
+int Debugger_Init() {
 	renderer = Graphics_GetRenderer();
 
 	target = SDL_CreateTexture(
@@ -110,8 +110,14 @@ void Debugger_Init() {
 		GRAPHICS_LHEIGHT
 	);
 
+	if (target == NULL) {
+		return -1;
+	}
+
 	SDL_SetTextureBlendMode(target, SDL_BLENDMODE_BLEND);
 	SDL_SetTextureAlphaMod(target, 128);
+
+	return 1;
 }
 
 void Debugger_Destroy() {

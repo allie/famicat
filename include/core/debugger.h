@@ -5,7 +5,7 @@ enum {
 	DEBUGGER_KEY_TOGGLE
 };
 
-void Debugger_Init();
+int Debugger_Init();
 void Debugger_Destroy();
 void Debugger_HandleInput(int);
 void Debugger_Update();
