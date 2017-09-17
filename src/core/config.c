@@ -1,92 +1,88 @@
 #include "core/config.h"
+#include "core/debugger.h"
+#include "io/io.h"
+#include <string.h>
 #include <SDL2/SDL.h>
 
 Config config;
 
-void Config_load(const char* path) {
+void Config_Load(const char* path) {
 
 }
 
-void Config_load_defaults() {
-	config.keys.a.sym = SDLK_z;
-	config.keys.a.mod = KMOD_NONE;
+void Config_LoadDefaults() {
+	config.binding_count = 10;
+	config.bindings = (Keybinding*)malloc(config.binding_count * sizeof(Keybinding));
 
-	config.keys.b.sym = SDLK_x;
-	config.keys.b.mod = KMOD_NONE;
+	strcpy(config.bindings[0].name, "a");
+	config.bindings[0].sym.sym = SDLK_z;
+	config.bindings[0].sym.mod = KMOD_NONE;
+	config.bindings[0].callback = IO_HandleInput;
+	config.bindings[0].arg = IO_KEY_A;
 
-	config.keys.start.sym = SDLK_RETURN;
-	config.keys.start.mod = KMOD_NONE;
+	strcpy(config.bindings[1].name, "b");
+	config.bindings[1].sym.sym = SDLK_x;
+	config.bindings[1].sym.mod = KMOD_NONE;
+	config.bindings[1].callback = IO_HandleInput;
+	config.bindings[1].arg = IO_KEY_B;
 
-	config.keys.select.sym = SDLK_RSHIFT;
-	config.keys.select.mod = KMOD_NONE;
+	strcpy(config.bindings[2].name, "start");
+	config.bindings[2].sym.sym = SDLK_RETURN;
+	config.bindings[2].sym.mod = KMOD_NONE;
+	config.bindings[2].callback = IO_HandleInput;
+	config.bindings[2].arg = IO_KEY_START;
 
-	config.keys.reset.sym = SDLK_r;
-	config.keys.reset.mod = KMOD_LCTRL;
+	strcpy(config.bindings[3].name, "select");
+	config.bindings[3].sym.sym = SDLK_RSHIFT;
+	config.bindings[3].sym.mod = KMOD_NONE;
+	config.bindings[3].callback = IO_HandleInput;
+	config.bindings[3].arg = IO_KEY_SELECT;
 
-	config.keys.up.sym = SDLK_UP;
-	config.keys.up.mod = KMOD_NONE;
+	strcpy(config.bindings[4].name, "up");
+	config.bindings[4].sym.sym = SDLK_UP;
+	config.bindings[4].sym.mod = KMOD_NONE;
+	config.bindings[4].callback = IO_HandleInput;
+	config.bindings[4].arg = IO_KEY_UP;
 
-	config.keys.down.sym = SDLK_DOWN;
-	config.keys.down.mod = KMOD_NONE;
+	strcpy(config.bindings[5].name, "down");
+	config.bindings[5].sym.sym = SDLK_DOWN;
+	config.bindings[5].sym.mod = KMOD_NONE;
+	config.bindings[5].callback = IO_HandleInput;
+	config.bindings[5].arg = IO_KEY_DOWN;
 
-	config.keys.left.sym = SDLK_LEFT;
-	config.keys.left.mod = KMOD_NONE;
+	strcpy(config.bindings[6].name, "left");
+	config.bindings[6].sym.sym = SDLK_LEFT;
+	config.bindings[6].sym.mod = KMOD_NONE;
+	config.bindings[6].callback = IO_HandleInput;
+	config.bindings[6].arg = IO_KEY_LEFT;
 
-	config.keys.right.sym = SDLK_UP;
-	config.keys.right.mod = KMOD_NONE;
+	strcpy(config.bindings[7].name, "right");
+	config.bindings[7].sym.sym = SDLK_RIGHT;
+	config.bindings[7].sym.mod = KMOD_NONE;
+	config.bindings[7].callback = IO_HandleInput;
+	config.bindings[7].arg = IO_KEY_RIGHT;
 
-	config.keys.change_state_1.sym = SDLK_1;
-	config.keys.change_state_1.mod = KMOD_NONE;
+	strcpy(config.bindings[8].name, "reset");
+	config.bindings[8].sym.sym = SDLK_r;
+	config.bindings[8].sym.mod = KMOD_NONE;
+	config.bindings[8].callback = IO_HandleInput;
+	config.bindings[8].arg = IO_KEY_RESET;
 
-	config.keys.change_state_2.sym = SDLK_2;
-	config.keys.change_state_2.mod = KMOD_NONE;
-
-	config.keys.change_state_3.sym = SDLK_3;
-	config.keys.change_state_3.mod = KMOD_NONE;
-
-	config.keys.change_state_4.sym = SDLK_4;
-	config.keys.change_state_4.mod = KMOD_NONE;
-
-	config.keys.change_state_5.sym = SDLK_5;
-	config.keys.change_state_5.mod = KMOD_NONE;
-
-	config.keys.change_state_6.sym = SDLK_6;
-	config.keys.change_state_6.mod = KMOD_NONE;
-
-	config.keys.change_state_7.sym = SDLK_7;
-	config.keys.change_state_7.mod = KMOD_NONE;
-
-	config.keys.change_state_8.sym = SDLK_8;
-	config.keys.change_state_8.mod = KMOD_NONE;
-
-	config.keys.change_state_9.sym = SDLK_9;
-	config.keys.change_state_9.mod = KMOD_NONE;
-
-	config.keys.save_state.sym = SDLK_s;
-	config.keys.save_state.mod = KMOD_LCTRL;
-
-	config.keys.load_state.sym = SDLK_l;
-	config.keys.load_state.mod = KMOD_LCTRL;
-
-	config.keys.ui_scale_up.sym = SDLK_EQUALS;
-	config.keys.ui_scale_up.mod = KMOD_NONE;
-
-	config.keys.ui_scale_down.sym = SDLK_MINUS;
-	config.keys.ui_scale_down.mod = KMOD_NONE;
-
-	config.keys.ui_tab_right.sym = SDLK_RIGHT;
-	config.keys.ui_tab_right.mod = KMOD_NONE;
-
-	config.keys.ui_tab_left.sym = SDLK_LEFT;
-	config.keys.ui_tab_left.mod = KMOD_NONE;
-
-	config.keys.debugger_frame_advance.sym = SDLK_RIGHT;
-	config.keys.debugger_frame_advance.mod = KMOD_LSHIFT;
-
-	config.keys.debugger_pause.sym = SDLK_SPACE;
-	config.keys.debugger_pause.mod = KMOD_NONE;
+	strcpy(config.bindings[9].name, "debug");
+	config.bindings[9].sym.sym = SDLK_a;
+	config.bindings[9].sym.mod = KMOD_NONE;
+	config.bindings[9].callback = Debugger_HandleInput;
+	config.bindings[9].arg = DEBUGGER_KEY_TOGGLE;
 }
 
-void Config_write(const char* path) {
+void Config_Write(const char* path) {
 
+}
+
+void Config_Destroy() {
+	for (int i = 0; i < config.binding_count; i++) {
+		if (config.bindings[i].name != NULL) {
+			free(config.bindings[i].name);
+		}
+	}
 }

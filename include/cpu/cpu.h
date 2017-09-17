@@ -14,6 +14,10 @@
 #define FLAG_V 0x40
 #define FLAG_N 0x80
 
+#define SET_FLAG(f) cpu.S |= f
+#define CLEAR_FLAG(f) cpu.S &= ~(f)
+#define GET_FLAG(f) (cpu.S & f)
+
 /* Stack base address */
 #define STACK_ADDR 0x100
 

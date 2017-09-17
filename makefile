@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-std=c99 -c -Wall -D_POSIX_C_SOURCE=200112L -DUNOFFICIAL_MODE -Iinclude -I/usr/local/include -g
+CFLAGS=-std=c99 -g -c -Wall -D_POSIX_C_SOURCE=200112L -DUNOFFICIAL_MODE -Iinclude -I/usr/local/include
 LDFLAGS=-lSDL2_image -lSDL2 -lm
 SOURCES=$(shell find src -name "*.c")
 OBJECTS=$(SOURCES:.c=.o)
@@ -11,7 +11,7 @@ ifneq (, $(findstring mingw, $(OS)))
 	CC=gcc
 endif
 
-all: clean $(SOURCES) $(EXECUTABLE)
+all: $(SOURCES) $(EXECUTABLE)
 
 debug: CFLAGS += -D__DEBUG__
 debug: all

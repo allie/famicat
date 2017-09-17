@@ -1,4 +1,5 @@
 #include "core/graphics.h"
+#include <string.h>
 
 static SDL_Window* window;
 static SDL_Renderer* renderer;
@@ -7,13 +8,12 @@ static int height;
 static int lwidth;
 static int lheight;
 
+#include "font.i"
 static SDL_Texture* font;
 
 int Graphics_Init(int w, int h) {
 	width = w;
 	height = h;
-	lwidth = 256;
-	lheight = 240;
 
 	window = SDL_CreateWindow(
 		"famicat",
@@ -40,8 +40,12 @@ int Graphics_Init(int w, int h) {
 		return 0;
 	}
 
+	font = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STATIC, 128, 128);
+	SDL_UpdateTexture(font, NULL, font_tex, 128 * 3);
+
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-	SDL_RenderSetLogicalSize(renderer, lwidth, lheight);
+	SDL_RenderSetLogicalSize(renderer, GRAPHICS_LWIDTH, GRAPHICS_LHEIGHT);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
 	return 1;
 }
@@ -50,7 +54,7 @@ void Graphics_RenderTexture(SDL_Texture* texture, SDL_Rect* src, SDL_Rect* dst) 
 	SDL_RenderCopy(renderer, texture, src, dst);
 }
 
-void Graphics_DrawString(const char* text, unsigned x, unsigned y) {
+void Graphics_RenderString(const char* text, unsigned x, unsigned y) {
 	for (int i = 0; i < strlen(text); i++) {
 		char c = text[i];
 		int tx = c % 16;
@@ -61,16 +65,17 @@ void Graphics_DrawString(const char* text, unsigned x, unsigned y) {
 	}
 }
 
-void Graphics_DrawHex(unsigned long val, unsigned bytes, unsigned x, unsigned y) {
+void Graphics_RenderHex(unsigned long val, unsigned bytes, unsigned x, unsigned y) {
 	char hex[17];
 	snprintf(hex, bytes * 2 + 1, "%0*lX", bytes * 2, val);
-	Graphics_DrawString(hex, x, y);
+	Graphics_RenderString(hex, x, y);
 }
 
 void Graphics_Clear() {
 	if (renderer == NULL)
 		return;
 
+	SDL_SetRenderDrawColor(Graphics_GetRenderer(), 255, 255, 255, 1);
 	SDL_RenderClear(renderer);
 }
 

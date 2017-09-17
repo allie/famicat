@@ -5,6 +5,8 @@
 #include "core/graphics.h"
 #include "core/audio.h"
 #include "core/config.h"
+#include "core/input.h"
+#include "core/debugger.h"
 #include "memory/memory.h"
 #include "memory/cart.h"
 
@@ -23,6 +25,9 @@ int main(int argc, char* argv[]) {
 	if (!Audio_Init())
 		return 0;
 
+	Debugger_Init();
+	Config_LoadDefaults();
+
 	if (argc > 1) {
 		Cart_Load(argv[1]);
 		CPU_Reset();
@@ -31,15 +36,22 @@ int main(int argc, char* argv[]) {
 		printf("NOTE: No ROM file supplied.\n");
 	}
 
+	int running = 1;
 	int odd;
 	int lastaputick;
 	int flip;
 
-	while (1) {
+	while (running) {
 		SDL_Event e;
-		if (SDL_PollEvent(&e))
-			if (e.type == SDL_QUIT)
-				break;
+		while (SDL_PollEvent(&e) != 0) {
+			if (e.type == SDL_QUIT) {
+				running = 0;
+			}
+
+			else if (e.type == SDL_KEYDOWN) {
+				Input_Handle(e.key.keysym);
+			}
+		}
 
 		Graphics_Clear();
 
@@ -63,6 +75,8 @@ int main(int argc, char* argv[]) {
 		}
 
 		cpu.cycles -= (CLOCK_SPEED / 60);
+
+		Debugger_Draw();
 
 		Graphics_Present();
 
