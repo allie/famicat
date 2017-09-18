@@ -7,7 +7,7 @@ static int scale = 1;
 static int width;
 static int height;
 
-#include "font.i"
+#include "font.partial.c"
 static SDL_Texture* font;
 
 int Graphics_Init(int w, int h) {

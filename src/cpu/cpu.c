@@ -25,14 +25,14 @@ static WORD pullw() {
 static void (*mode)();
 
 /* --- Addressing mode functions --- */
-#include "addressing.i"
+#include "addressing.partial.c"
 
 /* --- CPU instruction functions --- */
-#include "instructions.i"
+#include "instructions.partial.c"
 
 /* --- Disassembler --- */
 #ifdef DEBUG_MODE
-#include "disassembler.i"
+#include "disassembler.partial.c"
 #endif
 
 /* Addressing mode function pointer table for fetching operands; indexed by opcode */
