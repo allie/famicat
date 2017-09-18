@@ -16,14 +16,14 @@ typedef struct {
 	int binding_count;
 
 	Vector2 window_pos;
-	Vector2 window_size;
+	int window_scale;
 
 	float volume;
 
 	char recent_files[10][256];
 } Config;
 
-void Config_Load(const char*);
+int Config_Load(const char*);
 void Config_LoadDefaults();
 void Config_Write(const char*);
 void Config_Destroy();

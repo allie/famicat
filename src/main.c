@@ -20,7 +20,11 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	if (!Graphics_Init(256, 240)) {
+	if (!Config_Load("config.json")) {
+		Config_LoadDefaults();
+	}
+
+	if (!Graphics_Init()) {
 		return 0;
 	}
 
@@ -31,8 +35,6 @@ int main(int argc, char* argv[]) {
 	if (!Debugger_Init()) {
 		return 0;
 	};
-
-	Config_LoadDefaults();
 
 	if (argc > 1) {
 		Cart_Load(argv[1]);

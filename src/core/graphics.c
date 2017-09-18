@@ -1,25 +1,22 @@
 #include "core/graphics.h"
+#include "core/config.h"
 #include <string.h>
 
 static SDL_Window* window;
 static SDL_Renderer* renderer;
-static int scale = 1;
-static int width;
-static int height;
 
 #include "font.partial.c"
 static SDL_Texture* font;
 
-int Graphics_Init(int w, int h) {
-	width = w;
-	height = h;
+extern Config config;
 
+int Graphics_Init() {
 	window = SDL_CreateWindow(
 		"famicat",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		GRAPHICS_LWIDTH,
-		GRAPHICS_LHEIGHT,
+		config.window_pos.x,
+		config.window_pos.y,
+		GRAPHICS_LWIDTH * config.window_scale,
+		GRAPHICS_LHEIGHT * config.window_scale,
 		SDL_WINDOW_OPENGL
 	);
 
@@ -72,15 +69,12 @@ void Graphics_RenderHex(unsigned long val, unsigned bytes, unsigned x, unsigned 
 
 void Graphics_Scale(int direction) {
 	if (direction == GRAPHICS_SCALE_UP) {
-		scale++;
-	} else if (direction == GRAPHICS_SCALE_DOWN && scale > 1) {
-		scale--;
+		config.window_scale++;
+	} else if (direction == GRAPHICS_SCALE_DOWN && config.window_scale > 1) {
+		config.window_scale--;
 	}
 
-	width = scale * GRAPHICS_LWIDTH;
-	height = scale * GRAPHICS_LHEIGHT;
-
-	SDL_SetWindowSize(window, width, height);
+	SDL_SetWindowSize(window, GRAPHICS_LWIDTH * config.window_scale, GRAPHICS_LHEIGHT * config.window_scale);
 }
 
 void Graphics_Clear() {
