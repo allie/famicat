@@ -93,9 +93,5 @@ void Config_Write(const char* path) {
 }
 
 void Config_Destroy() {
-	for (int i = 0; i < config.binding_count; i++) {
-		if (config.bindings[i].name != NULL) {
-			free(config.bindings[i].name);
-		}
-	}
+
 }
