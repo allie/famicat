@@ -2,13 +2,83 @@
 #include "core/debugger.h"
 #include "core/graphics.h"
 #include "io/io.h"
+#include <stdio.h>
 #include <string.h>
 #include <SDL2/SDL.h>
+#include <jsmn.h>
 
 Config config;
 
-void Config_Load(const char* path) {
+// From the jsmn example files
+static int jsoncmp(const char* json, jsmntok_t* token, const char* str) {
+	if (token->type == JSMN_STRING && (int)strlen(str) == token->end - token->start &&
+		strncmp(json + token->start, str, token->end - token->start) == 0) {
+		return 0;
+	}
+	return -1;
+}
 
+int Config_Load(const char* path) {
+	FILE* fp = fopen(path, "rb");
+	if (fp == NULL) {
+		printf("Error opening config file.\n");
+		return -1;
+	}
+
+	long length;
+	char* buf;
+
+	fseek(fp, 0, SEEK_END);
+	length = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+	buf = (char*)malloc(length);
+	fread(buf, 1, length, fp);
+	fclose(f);
+
+	jsmn_parser parser;
+	jsmntok_t tokens[20];
+
+	jsmn_init(&parser);
+
+	int count = jsmn_parse(&parser, buf, strlen(buf), tokens, 20);
+
+	if (count < 0) {
+		printf("Error: malformed config file.\n");
+		Config_LoadDefaults();
+		return -1;
+	}
+
+	if (count < 1 || tokens[0].type != JSMN_OBJECT) {
+		printf("Error: root object expected.\n");
+		return -1;
+	}
+
+	// Parse JSON keys in the root object
+	for (int i = 1; i < count; i++) {
+		// Window position
+		if (jsoncmp(buf, &token[i], "pos") == 0) {
+			if (i + 1 < count && ) {
+
+			}
+		}
+
+		// Window scale
+		else if (jsoncmp(buf, &token[i], "scale") == 0) {
+
+		}
+
+		// Volume
+		else if (jsoncmp(buf, &token[i], "volume") == 0) {
+
+		}
+
+		// Keybindings
+		else if (jsoncmp(buf, &token[i], "bindings") == 0) {
+
+		}
+	}
+
+	return 1;
 }
 
 void Config_LoadDefaults() {
