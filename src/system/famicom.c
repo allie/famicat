@@ -43,3 +43,23 @@ int Famicom_Emulate(void* args) {
 
 	return 0;
 }
+
+void Famicom_LoadState() {
+
+}
+
+void Famicom_SaveState() {
+
+}
+
+void Famicom_SelectState(int state) {
+
+}
+
+void Famicom_NextState() {
+
+}
+
+void Famicom_PreviousState() {
+
+}

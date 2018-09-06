@@ -20,8 +20,9 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	if (!Config_Load("config.json")) {
+	if (!Config_Load("famicat.ini")) {
 		Config_LoadDefaults();
+		Config_Write("famicat.ini");
 	}
 
 	if (!Graphics_Init()) {
@@ -29,6 +30,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (!Audio_Init()) {
+		return 0;
+	}
+
+	if (!Input_Init("gamecontrollerdb.txt")) {
 		return 0;
 	}
 

@@ -26,6 +26,8 @@
 #define NMI 2
 #define RESET 3
 
+#define CPU_HISTORY_LIMIT 0x10000
+
 typedef struct {
 	WORD PC;
 	BYTE SP;
@@ -42,6 +44,16 @@ typedef struct {
 	BYTE interrupt;
 	DWORD suspended;
 } CPU;
+
+typedef struct {
+	CPU cpu;
+	DWORD line;
+} CPU_State;
+
+typedef struct {
+	CPU_State states[CPU_HISTORY_LIMIT];
+	int ptr;
+} CPU_History;
 
 void CPU_Reset();
 void CPU_Suspend(DWORD duration);
