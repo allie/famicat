@@ -17,9 +17,11 @@ typedef struct {
 } Dictionary;
 
 Dictionary* Dictionary_New();
-void Dictionary_Destroy(Dictionary* dictionary);
-void Dictionary_Add(Dictionary* dictionary, const char* key, void* value);
-void Dicitonary_Remove(Dictionary* dictionary, const char* key);
-void* Dictionary_Get(Dictionary* dictionary, const char* key);
+void Dictionary_Destroy(Dictionary*);
+void Dictionary_Add(Dictionary*, const char*, void*);
+void Dicitonary_Remove(Dictionary*, const char*);
+void* Dictionary_Get(Dictionary*, const char*);
+Entry** Dictionary_GetAll(Dictionary*, int*);
+int Dictionary_Count(Dictionary*);
 
 #endif

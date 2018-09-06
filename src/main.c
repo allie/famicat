@@ -1,15 +1,15 @@
 #include <SDL2/SDL.h>
 #include <math.h>
-#include "cpu/cpu.h"
-#include "apu/apu.h"
 #include "core/graphics.h"
 #include "core/audio.h"
 #include "core/config.h"
 #include "core/input.h"
 #include "core/debugger.h"
-#include "memory/memory.h"
-#include "memory/cart.h"
-#include "system/famicom.h"
+#include "famicom/memory.h"
+#include "famicom/cart.h"
+#include "famicom/cpu.h"
+#include "famicom/apu.h"
+#include "famicom/famicom.h"
 
 extern CPU cpu;
 extern APU apu;
@@ -20,8 +20,13 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-	if (!Config_Load("config.json")) {
+	if (!Config_Init()) {
+		return 0;
+	}
+
+	if (!Config_Load("famicat.ini")) {
 		Config_LoadDefaults();
+		Config_Write("famicat.ini");
 	}
 
 	if (!Graphics_Init()) {
@@ -32,13 +37,17 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
+	if (!Input_Init("gamecontrollerdb.txt")) {
+		return 0;
+	}
+
 	if (!Debugger_Init()) {
 		return 0;
 	};
 
 	if (argc > 1) {
 		Cart_Load(argv[1]);
-		Famicom_Reset();
+		Famicom_PowerOn();
 	} else {
 		printf("NOTE: No ROM file supplied.\n");
 	}
@@ -58,7 +67,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			else if (e.type == SDL_KEYDOWN) {
-				Input_Handle(e.key.keysym);
+				Input_Handle(e.key.keysym, SDL_CONTROLLER_BUTTON_INVALID);
 			}
 		}
 

@@ -1,208 +1,69 @@
 #include "core/config.h"
 #include "core/debugger.h"
 #include "core/graphics.h"
-#include "io/io.h"
+#include "famicom/io.h"
+#include "famicom/famicom.h"
+#include "inih/ini.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <SDL2/SDL.h>
-#include <jsmn.h>
+
+#define MATCH_SECTION(s) strcmp(section, s) == 0
+#define MATCH_KEY(k) strcmp(name, k) == 0
 
 Config config;
 
-// From the jsmn example files
-static int jsoncmp(const char* json, jsmntok_t* token, const char* str) {
-	if (token->type == JSMN_STRING && (int)strlen(str) == token->end - token->start &&
-		strncmp(json + token->start, str, token->end - token->start) == 0) {
-		return 0;
-	}
-	return -1;
+static QWORD pack_keysym(SDL_Keysym sym) {
+	return ((((QWORD)sym.mod) & 0x0000FFFF) << 32) | (((QWORD)sym.scancode) & 0x0000FFFF);
 }
 
-static char* extract_string(char* str, size_t size) {
-	char* buf = (char*)malloc(size + 1);
+static SDL_Keysym unpack_keysym(QWORD val) {
+	SDL_Keysym sym;
+	sym.scancode = (DWORD)((val & 0x0000FFFF));
+	sym.mod = (DWORD)((val & 0xFFFF0000) >> 32);
+	return sym;
+}
 
-	if (buf) {
-		int i;
-
-		for (i = 0; i < size && str[i] != '\0'; i++) {
-			buf[i] = str[i];
+static int ini_callback(void* user, const char* section, const char* name, const char* value) {
+	if (MATCH_SECTION("interface")) {
+		if (MATCH_KEY("window_pos_x")) {
+			config.window_pos.x = atoi(value);
+		} else if (MATCH_KEY("window_pos_y")) {
+			config.window_pos.y = atoi(value);
+		} else if (MATCH_KEY("window_scale")) {
+			config.window_scale = atoi(value);
+		} else if (MATCH_KEY("volume")) {
+			config.volume = atof(value);
 		}
-
-		buf[i] = '\0';
 	}
 
-	return buf;
+	else if (MATCH_SECTION("keyboard")) {
+		Keybinding* key = (Keybinding*)malloc(sizeof(Keybinding));
+		SDL_Keysym sym = unpack_keysym(atoll(value));
+		key->sym.scancode = sym.scancode;
+		key->sym.mod = sym.mod;
+		Dictionary_Add(config.keybindings, name, key);
+	}
+
+	else if (MATCH_SECTION("controller")) {
+		Dictionary_Add(config.mappings, name, (void*)value);
+	}
+
+	return 1;
+}
+
+int Config_Init() {
+	config.keybindings = Dictionary_New();
+	config.mappings = Dictionary_New();
+
+	return 1;
 }
 
 int Config_Load(const char* path) {
-	FILE* fp = fopen(path, "rb");
-	if (fp == NULL) {
-		printf("Error opening config file.\n");
-		return -1;
-	}
-
-	long length;
-	char* buf;
-
-	fseek(fp, 0, SEEK_END);
-	length = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
-	buf = (char*)malloc(length);
-	fread(buf, 1, length, fp);
-	fclose(fp);
-
-	jsmn_parser parser;
-	jsmntok_t tokens[256];
-
-	jsmn_init(&parser);
-
-	int count = jsmn_parse(&parser, buf, strlen(buf), tokens, 256);
-
-	if (count < 0) {
-		printf("Error: malformed config file; ");
-		switch (count) {
-		case JSMN_ERROR_INVAL:
-			printf("Bad token.\n");
-			break;
-		case JSMN_ERROR_NOMEM:
-			printf("Not enough tokens.\n");
-			break;
-		case JSMN_ERROR_PART:
-			printf("Expected more JSON data.\n");
-			break;
-		default:
-			printf("\n");
-			break;
-		}
-		return -1;
-	}
-
-	if (count < 1 || tokens[0].type != JSMN_OBJECT) {
-		printf("Error: root object expected.\n");
-		return -1;
-	}
-
-	// Parse JSON keys in the root object
-	for (int i = 1; i < count; i++) {
-		// Window position
-		if (jsoncmp(buf, &tokens[i], "pos") == 0) {
-			i++;
-			if (tokens[i].type == JSMN_ARRAY && tokens[i].size == 2) {
-				char* x = extract_string(buf + tokens[i + 1].start, tokens[i + 1].end - tokens[i + 1].start);
-				char* y = extract_string(buf + tokens[i + 2].start, tokens[i + 2].end - tokens[i + 2].start);
-				config.window_pos.x = atoi(x);
-				config.window_pos.y = atoi(y);
-				free(x);
-				free(y);
-				i += 2;
-			}
-		}
-
-		// Window scale
-		else if (jsoncmp(buf, &tokens[i], "scale") == 0) {
-			i++;
-			char* scale = extract_string(buf + tokens[i].start, tokens[i].end - tokens[i].start);
-			config.window_scale = atoi(scale);
-			free(scale);
-		}
-
-		// Volume
-		else if (jsoncmp(buf, &tokens[i], "volume") == 0) {
-			i++;
-			char* volume = extract_string(buf + tokens[i].start, tokens[i].end - tokens[i].start);
-			config.volume = atoi(volume) / 100.0f;
-			free(volume);
-		}
-
-		// Keybindings
-		else if (jsoncmp(buf, &tokens[i], "bindings") == 0) {
-			i++;
-			if (tokens[i].type == JSMN_OBJECT) {
-				int n = tokens[i].size;
-
-				config.binding_count = n;
-				config.bindings = (Keybinding*)malloc(n * sizeof(Keybinding));
-
-				i++;
-				for (int j = 0; j < n; j++) {
-					if (tokens[i + 1].type == JSMN_ARRAY && tokens[i + 1].size == 2) {
-						char* name = extract_string(buf + tokens[i].start, tokens[i].end - tokens[i].start);
-						char* mod = extract_string(buf + tokens[i + 2].start, tokens[i + 2].end - tokens[i + 2].start);
-						char* sym = extract_string(buf + tokens[i + 3].start, tokens[i + 3].end - tokens[i + 3].start);
-
-						strcpy(config.bindings[j].name, name);
-						config.bindings[j].sym.sym = atoi(sym);
-						config.bindings[j].sym.mod = atoi(mod);
-
-						if (strcmp(name, "a") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_A;
-						}
-
-						else if (strcmp(name, "b") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_B;
-						}
-
-						else if (strcmp(name, "start") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_START;
-						}
-
-						else if (strcmp(name, "select") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_SELECT;
-						}
-
-						else if (strcmp(name, "up") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_UP;
-						}
-
-						else if (strcmp(name, "down") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_DOWN;
-						}
-
-						else if (strcmp(name, "left") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_LEFT;
-						}
-
-						else if (strcmp(name, "right") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_RIGHT;
-						}
-
-						else if (strcmp(name, "reset") == 0) {
-							config.bindings[j].callback = IO_HandleInput;
-							config.bindings[j].arg = IO_KEY_RESET;
-						}
-
-						else if (strcmp(name, "debug") == 0) {
-							config.bindings[j].callback = Debugger_HandleInput;
-							config.bindings[j].arg = DEBUGGER_KEY_TOGGLE;
-						}
-
-						else if (strcmp(name, "scaleup") == 0) {
-							config.bindings[j].callback = Graphics_Scale;
-							config.bindings[j].arg = GRAPHICS_SCALE_UP;
-						}
-
-						else if (strcmp(name, "scaledn") == 0) {
-							config.bindings[j].callback = Graphics_Scale;
-							config.bindings[j].arg = GRAPHICS_SCALE_DOWN;
-						}
-
-						free(name);
-						free(sym);
-						free(mod);
-						i += 4;
-					}
-				}
-			}
-		}
+	if (ini_parse(path, ini_callback, &config) < 0) {
+		printf("Could not parse configuration file. Attempting to generate a new one with default settings.\n");
+		return 0;
 	}
 
 	return 1;
@@ -212,87 +73,180 @@ void Config_LoadDefaults() {
 	config.window_pos.x = 100;
 	config.window_pos.y = 100;
 	config.window_scale = 1;
+	config.volume = 1.0f;
 
-	config.binding_count = 12;
-	config.bindings = (Keybinding*)malloc(config.binding_count * sizeof(Keybinding));
+	Keybinding* key = NULL;
 
-	strcpy(config.bindings[0].name, "a");
-	config.bindings[0].sym.sym = SDLK_z;
-	config.bindings[0].sym.mod = KMOD_NONE;
-	config.bindings[0].callback = IO_HandleInput;
-	config.bindings[0].arg = IO_KEY_A;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_R;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_reset", key);
 
-	strcpy(config.bindings[1].name, "b");
-	config.bindings[1].sym.sym = SDLK_x;
-	config.bindings[1].sym.mod = KMOD_NONE;
-	config.bindings[1].callback = IO_HandleInput;
-	config.bindings[1].arg = IO_KEY_B;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_P;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_pause", key);
 
-	strcpy(config.bindings[2].name, "start");
-	config.bindings[2].sym.sym = SDLK_RETURN;
-	config.bindings[2].sym.mod = KMOD_NONE;
-	config.bindings[2].callback = IO_HandleInput;
-	config.bindings[2].arg = IO_KEY_START;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_F1;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_debug", key);
 
-	strcpy(config.bindings[3].name, "select");
-	config.bindings[3].sym.sym = SDLK_RSHIFT;
-	config.bindings[3].sym.mod = KMOD_NONE;
-	config.bindings[3].callback = IO_HandleInput;
-	config.bindings[3].arg = IO_KEY_SELECT;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_PERIOD;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_scale_up", key);
 
-	strcpy(config.bindings[4].name, "up");
-	config.bindings[4].sym.sym = SDLK_UP;
-	config.bindings[4].sym.mod = KMOD_NONE;
-	config.bindings[4].callback = IO_HandleInput;
-	config.bindings[4].arg = IO_KEY_UP;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_COMMA;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_scale_down", key);
 
-	strcpy(config.bindings[5].name, "down");
-	config.bindings[5].sym.sym = SDLK_DOWN;
-	config.bindings[5].sym.mod = KMOD_NONE;
-	config.bindings[5].callback = IO_HandleInput;
-	config.bindings[5].arg = IO_KEY_DOWN;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_EQUALS;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_next_state", key);
 
-	strcpy(config.bindings[6].name, "left");
-	config.bindings[6].sym.sym = SDLK_LEFT;
-	config.bindings[6].sym.mod = KMOD_NONE;
-	config.bindings[6].callback = IO_HandleInput;
-	config.bindings[6].arg = IO_KEY_LEFT;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_MINUS;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_previous_state", key);
 
-	strcpy(config.bindings[7].name, "right");
-	config.bindings[7].sym.sym = SDLK_RIGHT;
-	config.bindings[7].sym.mod = KMOD_NONE;
-	config.bindings[7].callback = IO_HandleInput;
-	config.bindings[7].arg = IO_KEY_RIGHT;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_1;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_1", key);
 
-	strcpy(config.bindings[8].name, "reset");
-	config.bindings[8].sym.sym = SDLK_r;
-	config.bindings[8].sym.mod = KMOD_NONE;
-	config.bindings[8].callback = IO_HandleInput;
-	config.bindings[8].arg = IO_KEY_RESET;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_2;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_2", key);
 
-	strcpy(config.bindings[9].name, "debug");
-	config.bindings[9].sym.sym = SDLK_BACKQUOTE;
-	config.bindings[9].sym.mod = KMOD_NONE;
-	config.bindings[9].callback = Debugger_HandleInput;
-	config.bindings[9].arg = DEBUGGER_KEY_TOGGLE;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_3;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_3", key);
 
-	strcpy(config.bindings[10].name, "scaleup");
-	config.bindings[10].sym.sym = SDLK_EQUALS;
-	config.bindings[10].sym.mod = KMOD_NONE;
-	config.bindings[10].callback = Graphics_Scale;
-	config.bindings[10].arg = GRAPHICS_SCALE_UP;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_4;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_4", key);
 
-	strcpy(config.bindings[11].name, "scaledn");
-	config.bindings[11].sym.sym = SDLK_MINUS;
-	config.bindings[11].sym.mod = KMOD_NONE;
-	config.bindings[11].callback = Graphics_Scale;
-	config.bindings[11].arg = GRAPHICS_SCALE_DOWN;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_5;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_5", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_6;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_6", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_7;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_7", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_8;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_8", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_9;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_9", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_S;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_save_state", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_L;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_load_state", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_Z;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_a", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_X;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_b", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_RETURN;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_start", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_RSHIFT;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_select", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_UP;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_up", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_DOWN;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_down", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_LEFT;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_left", key);
+
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_RIGHT;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_right", key);
 }
 
 void Config_Write(const char* path) {
+	FILE* fp = fopen(path, "w");
 
+	if (!fp) {
+		printf("Error opening configuration file for writing.\n");
+		exit(0);
+	}
+
+	fprintf(fp, "[interface]\n");
+	fprintf(fp, "window_pos_x=%d\n", config.window_pos.x);
+	fprintf(fp, "window_pos_y=%d\n", config.window_pos.y);
+	fprintf(fp, "window_scale=%d\n", config.window_scale);
+	fprintf(fp, "volume=%f\n", config.volume);
+	fprintf(fp, "\n");
+
+	fprintf(fp, "[keyboard]\n");
+	int key_count = 0;
+	Entry** entries = Dictionary_GetAll(config.keybindings, &key_count);
+	for (int i = 0; i < key_count; i++) {
+		Entry* entry = entries[i];
+		Keybinding* keybinding = (Keybinding*)(entry->value);
+		QWORD sym = pack_keysym(keybinding->sym);
+		fprintf(fp, "%s=%llu\n", entry->key, sym);
+	}
+	fprintf(fp, "\n");
+
+	fprintf(fp, "[controller]\n");
+	int mapping_count = 0;
+	entries = Dictionary_GetAll(config.mappings, &mapping_count);
+	for (int i = 0; i < mapping_count; i++) {
+		Entry* entry = entries[i];
+		char* mapping = (char*)(entry->value);
+		fprintf(fp, "%s=%s\n", entry->key, mapping);
+	}
+
+	fclose(fp);
 }
 
 void Config_Destroy() {
-	free(config.bindings);
+	Dictionary_Destroy(config.keybindings);
+	Dictionary_Destroy(config.mappings);
 }

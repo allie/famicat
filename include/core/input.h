@@ -3,6 +3,12 @@
 
 #include <SDL2/SDL.h>
 
-void Input_Handle(SDL_Keysym);
+typedef struct {
+	int arg;
+	void (*callback)(int);
+} Input;
+
+int Input_Init(const char*);
+void Input_Handle(SDL_Keysym, SDL_GameControllerButton);
 
 #endif

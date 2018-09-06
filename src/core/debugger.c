@@ -1,6 +1,6 @@
 #include "core/debugger.h"
 #include "core/graphics.h"
-#include "cpu/cpu.h"
+#include "famicom/cpu.h"
 #include "SDL2/SDL.h"
 #include <stdio.h>
 
@@ -15,13 +15,35 @@ static SDL_Renderer* renderer;
 static SDL_Texture* target;
 static SDL_mutex* debugger_mutex;
 static char ins_str[40 * 26];
+static char reg_str[40 * 8];
 static int visible = 0;
 static int tab = DEBUGGER_TAB_CPU;
 
 extern CPU cpu;
+extern CPU_History cpu_history;
 
 static void Debugger_Toggle() {
 	visible = visible == 0 ? 1 : 0;
+}
+
+static void Debugger_UpdateCPU() {
+	// char ins_buf[40 * 26];
+	// char reg_buf[20 * 13];
+
+	// memset(ins_buf, 0, 40 * 26);
+	// memset(reg_buf, 0, 20 * 13);
+
+	// for (int i = 0; i < 26; i++) {
+	// 	if (cpu_history.ptr >= i + 1) {
+	// 		DWORD history_addr = cpu_history.ptr - i - 1;
+	// 		snprintf(ins_buf + (i * 40), 9, "%08X", cpu_history.states[history_addr].line);
+	// 		ins_buf[8 + (i * 40)] = ' ';
+	// 		Disassembler_Print(cpu_history.states[history_addr].cpu, ins_buf + 9 + (i * 40), 31);
+	// 	}
+	// }
+
+	// DWORD history_addr = cpu_history.ptr != 0 ? cpu_history.ptr - 1 : 0xFFFF;
+	// CPU state = cpu_history.states[history_addr].cpu;
 }
 
 static void Debugger_RenderCPU() {

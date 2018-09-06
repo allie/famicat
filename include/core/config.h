@@ -2,18 +2,23 @@
 #define CONFIG_H
 
 #include "../common.h"
+#include "utils/dictionary.h"
 #include <SDL2/SDL.h>
 
 typedef struct {
-	char name[8];
 	SDL_Keysym sym;
-	int arg;
-	void (*callback)(int);
 } Keybinding;
 
 typedef struct {
-	Keybinding* bindings;
-	int binding_count;
+	SDL_GameControllerButton button;
+	int arg;
+	void (*callback)(int);
+} ControllerBinding;
+
+typedef struct {
+	Dictionary* mappings;
+	Dictionary* keybindings;
+	Dictionary* controllerbindings;
 
 	Vector2 window_pos;
 	int window_scale;
@@ -23,6 +28,7 @@ typedef struct {
 	char recent_files[10][256];
 } Config;
 
+int Config_Init();
 int Config_Load(const char*);
 void Config_LoadDefaults();
 void Config_Write(const char*);
