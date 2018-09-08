@@ -74,7 +74,7 @@ void Dictionary_Add(Dictionary* dictionary, const char* key, void* value) {
 
 	Entry* entry = (Entry*)malloc(sizeof(Entry));
 
-	entry->key = key;
+	entry->key = strdup(key);
 	entry->value = value;
 
 	int id = Dictionary_GetFreeId(dictionary);
@@ -108,4 +108,22 @@ void* Dictionary_Get(Dictionary* dictionary, const char* key) {
 		return NULL;
 
 	return dictionary->entries[id]->value;
+}
+
+Entry** Dictionary_GetAll(Dictionary* dictionary, int* out_size) {
+	if (dictionary == NULL) {
+		*out_size = 0;
+		return NULL;
+	}
+
+	*out_size = dictionary->size;
+	return dictionary->entries;
+}
+
+int Dictionary_Count(Dictionary* dictionary) {
+	if (dictionary == NULL) {
+		return 0;
+	}
+
+	return dictionary->size;
 }

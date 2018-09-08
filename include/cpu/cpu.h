@@ -55,6 +55,7 @@ typedef struct {
 	int ptr;
 } CPU_History;
 
+void CPU_Init();
 void CPU_Reset();
 void CPU_Suspend(DWORD duration);
 DWORD CPU_Step();

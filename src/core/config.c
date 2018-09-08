@@ -39,19 +39,15 @@ static int ini_callback(void* user, const char* section, const char* name, const
 	}
 
 	else if (MATCH_SECTION("keyboard")) {
-		Keybinding* key = Dictionary_Get(config.keybindings, name);
-
-		if (!key) {
-			return 1;
-		}
-
+		Keybinding* key = (Keybinding*)malloc(sizeof(Keybinding));
 		SDL_Keysym sym = unpack_keysym(atoll(value));
 		key->sym.scancode = sym.scancode;
 		key->sym.mod = sym.mod;
+		Dictionary_Add(config.keybindings, name, key);
 	}
 
 	else if (MATCH_SECTION("controller")) {
-		// TODO
+		Dictionary_Add(config.mappings, name, (void*)value);
 	}
 
 	return 1;
@@ -61,22 +57,12 @@ int Config_Init() {
 	config.keybindings = Dictionary_New();
 	config.mappings = Dictionary_New();
 
-	Keybinding* key = (Keybinding*)malloc(sizeof(Keybinding));
-	key->callback = IO_HandleInput;
-	key->arg = IO_KEY_LEFT;
-	Dictionary_Set(config.keybindings, "key_1p_left", key);
-
-	key = (Keybinding*)malloc(sizeof(Keybinding));
-	key->callback = IO_HandleInput;
-	key->arg = IO_KEY_RIGHT;
-	Dictionary_Set(config.keybindings, "key_1p_right", key);
-
 	return 1;
 }
 
 int Config_Load(const char* path) {
 	if (ini_parse(path, ini_callback, &config) < 0) {
-		printf("Could not parse configuration file.\n");
+		printf("Could not parse configuration file. Attempting to generate a new one with default settings.\n");
 		return 0;
 	}
 
@@ -89,138 +75,137 @@ void Config_LoadDefaults() {
 	config.window_scale = 1;
 	config.volume = 1.0f;
 
-	// config.keybindings[KEY_RESET].sym.scancode = SDL_SCANCODE_R;
-	// config.keybindings[KEY_RESET].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_RESET].callback = IO_HandleInput;
-	// config.keybindings[KEY_RESET].arg = IO_KEY_RESET;
+	Keybinding* key = NULL;
 
-	// config.keybindings[KEY_PAUSE].sym.scancode = SDL_SCANCODE_P;
-	// config.keybindings[KEY_PAUSE].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_PAUSE].callback = IO_HandleInput;
-	// config.keybindings[KEY_PAUSE].arg = 0;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_R;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_reset", key);
 
-	// config.keybindings[KEY_DEBUG].sym.scancode = SDL_SCANCODE_F1;
-	// config.keybindings[KEY_DEBUG].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_DEBUG].callback = Debugger_HandleInput;
-	// config.keybindings[KEY_DEBUG].arg = DEBUGGER_KEY_TOGGLE;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_P;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_pause", key);
 
-	// config.keybindings[KEY_SCALE_UP].sym.scancode = SDL_SCANCODE_PERIOD;
-	// config.keybindings[KEY_SCALE_UP].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_SCALE_UP].callback = Graphics_Scale;
-	// config.keybindings[KEY_SCALE_UP].arg = GRAPHICS_SCALE_UP;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_F1;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_debug", key);
 
-	// config.keybindings[KEY_SCALE_DOWN].sym.scancode = SDL_SCANCODE_COMMA;
-	// config.keybindings[KEY_SCALE_DOWN].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_SCALE_DOWN].callback = Graphics_Scale;
-	// config.keybindings[KEY_SCALE_DOWN].arg = GRAPHICS_SCALE_DOWN;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_PERIOD;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_scale_up", key);
 
-	// config.keybindings[KEY_NEXT_STATE].sym.scancode = SDL_SCANCODE_EQUALS;
-	// config.keybindings[KEY_NEXT_STATE].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_NEXT_STATE].callback = Famicom_NextState;
-	// config.keybindings[KEY_NEXT_STATE].arg = 0;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_COMMA;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_scale_down", key);
 
-	// config.keybindings[KEY_PREVIOUS_STATE].sym.scancode = SDL_SCANCODE_MINUS;
-	// config.keybindings[KEY_PREVIOUS_STATE].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_PREVIOUS_STATE].callback = Famicom_PreviousState;
-	// config.keybindings[KEY_PREVIOUS_STATE].arg = 0;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_EQUALS;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_next_state", key);
 
-	// config.keybindings[KEY_STATE_1].sym.scancode = SDL_SCANCODE_1;
-	// config.keybindings[KEY_STATE_1].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_1].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_1].arg = 1;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_MINUS;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_previous_state", key);
 
-	// config.keybindings[KEY_STATE_2].sym.scancode = SDL_SCANCODE_2;
-	// config.keybindings[KEY_STATE_2].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_2].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_2].arg = 2;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_1;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_1", key);
 
-	// config.keybindings[KEY_STATE_3].sym.scancode = SDL_SCANCODE_3;
-	// config.keybindings[KEY_STATE_3].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_3].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_3].arg = 3;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_2;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_2", key);
 
-	// config.keybindings[KEY_STATE_4].sym.scancode = SDL_SCANCODE_4;
-	// config.keybindings[KEY_STATE_4].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_4].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_4].arg = 4;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_3;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_3", key);
 
-	// config.keybindings[KEY_STATE_5].sym.scancode = SDL_SCANCODE_5;
-	// config.keybindings[KEY_STATE_5].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_5].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_5].arg = 5;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_4;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_4", key);
 
-	// config.keybindings[KEY_STATE_6].sym.scancode = SDL_SCANCODE_6;
-	// config.keybindings[KEY_STATE_6].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_6].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_6].arg = 6;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_5;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_5", key);
 
-	// config.keybindings[KEY_STATE_7].sym.scancode = SDL_SCANCODE_7;
-	// config.keybindings[KEY_STATE_7].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_7].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_7].arg = 7;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_6;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_6", key);
 
-	// config.keybindings[KEY_STATE_8].sym.scancode = SDL_SCANCODE_8;
-	// config.keybindings[KEY_STATE_8].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_8].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_8].arg = 8;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_7;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_7", key);
 
-	// config.keybindings[KEY_STATE_9].sym.scancode = SDL_SCANCODE_9;
-	// config.keybindings[KEY_STATE_9].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_STATE_9].callback = Famicom_SelectState;
-	// config.keybindings[KEY_STATE_9].arg = 9;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_8;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_8", key);
 
-	// config.keybindings[KEY_SAVE_STATE].sym.scancode = SDL_SCANCODE_S;
-	// config.keybindings[KEY_SAVE_STATE].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_SAVE_STATE].callback = Famicom_SaveState;
-	// config.keybindings[KEY_SAVE_STATE].arg = 0;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_9;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_state_9", key);
 
-	// config.keybindings[KEY_LOAD_STATE].sym.scancode = SDL_SCANCODE_L;
-	// config.keybindings[KEY_LOAD_STATE].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_LOAD_STATE].callback = Famicom_LoadState;
-	// config.keybindings[KEY_LOAD_STATE].arg = 0;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_S;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_save_state", key);
 
-	// config.keybindings[KEY_1P_A].sym.scancode = SDL_SCANCODE_Z;
-	// config.keybindings[KEY_1P_A].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_A].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_A].arg = IO_KEY_A;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_L;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_load_state", key);
 
-	// config.keybindings[KEY_1P_B].sym.scancode = SDL_SCANCODE_X;
-	// config.keybindings[KEY_1P_B].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_B].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_B].arg = IO_KEY_B;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_Z;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_a", key);
 
-	// config.keybindings[KEY_1P_START].sym.scancode = SDL_SCANCODE_RETURN;
-	// config.keybindings[KEY_1P_START].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_START].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_START].arg = IO_KEY_START;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_X;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_b", key);
 
-	// config.keybindings[KEY_1P_SELECT].sym.scancode = SDL_SCANCODE_RSHIFT;
-	// config.keybindings[KEY_1P_SELECT].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_SELECT].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_SELECT].arg = IO_KEY_SELECT;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_RETURN;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_start", key);
 
-	// config.keybindings[KEY_1P_UP].sym.scancode = SDL_SCANCODE_UP;
-	// config.keybindings[KEY_1P_UP].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_UP].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_UP].arg = IO_KEY_UP;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_RSHIFT;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_select", key);
 
-	// config.keybindings[KEY_1P_DOWN].sym.scancode = SDL_SCANCODE_DOWN;
-	// config.keybindings[KEY_1P_DOWN].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_DOWN].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_DOWN].arg = IO_KEY_DOWN;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_UP;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_up", key);
 
-	// config.keybindings[KEY_1P_LEFT].sym.scancode = SDL_SCANCODE_LEFT;
-	// config.keybindings[KEY_1P_LEFT].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_LEFT].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_LEFT].arg = IO_KEY_LEFT;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_DOWN;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_down", key);
 
-	// config.keybindings[KEY_1P_RIGHT].sym.scancode = SDL_SCANCODE_RIGHT;
-	// config.keybindings[KEY_1P_RIGHT].sym.mod = KMOD_NONE;
-	// config.keybindings[KEY_1P_RIGHT].callback = IO_HandleInput;
-	// config.keybindings[KEY_1P_RIGHT].arg = IO_KEY_RIGHT;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_LEFT;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_left", key);
 
-	config.mapping_count = 0;
-	config.mappings = NULL;
+	key = (Keybinding*)malloc(sizeof(Keybinding));
+	key->sym.scancode = SDL_SCANCODE_RIGHT;
+	key->sym.mod = KMOD_NONE;
+	Dictionary_Add(config.keybindings, "key_1p_right", key);
 }
 
 void Config_Write(const char* path) {
@@ -239,35 +224,24 @@ void Config_Write(const char* path) {
 	fprintf(fp, "\n");
 
 	fprintf(fp, "[keyboard]\n");
-	fprintf(fp, "key_reset=%llu\n", pack_keysym(config.keybindings[KEY_RESET].sym));
-	fprintf(fp, "key_pause=%llu\n", pack_keysym(config.keybindings[KEY_PAUSE].sym));
-	fprintf(fp, "key_debug=%llu\n", pack_keysym(config.keybindings[KEY_DEBUG].sym));
-	fprintf(fp, "key_scaleup=%llu\n", pack_keysym(config.keybindings[KEY_SCALE_UP].sym));
-	fprintf(fp, "key_scaledn=%llu\n", pack_keysym(config.keybindings[KEY_SCALE_DOWN].sym));
-	fprintf(fp, "key_next_state=%llu\n", pack_keysym(config.keybindings[KEY_NEXT_STATE].sym));
-	fprintf(fp, "key_previous_state=%llu\n", pack_keysym(config.keybindings[KEY_PREVIOUS_STATE].sym));
-	fprintf(fp, "key_state_1=%llu\n", pack_keysym(config.keybindings[KEY_STATE_1].sym));
-	fprintf(fp, "key_state_2=%llu\n", pack_keysym(config.keybindings[KEY_STATE_2].sym));
-	fprintf(fp, "key_state_3=%llu\n", pack_keysym(config.keybindings[KEY_STATE_3].sym));
-	fprintf(fp, "key_state_4=%llu\n", pack_keysym(config.keybindings[KEY_STATE_4].sym));
-	fprintf(fp, "key_state_5=%llu\n", pack_keysym(config.keybindings[KEY_STATE_5].sym));
-	fprintf(fp, "key_state_6=%llu\n", pack_keysym(config.keybindings[KEY_STATE_6].sym));
-	fprintf(fp, "key_state_7=%llu\n", pack_keysym(config.keybindings[KEY_STATE_7].sym));
-	fprintf(fp, "key_state_8=%llu\n", pack_keysym(config.keybindings[KEY_STATE_8].sym));
-	fprintf(fp, "key_state_9=%llu\n", pack_keysym(config.keybindings[KEY_STATE_9].sym));
-	fprintf(fp, "key_save_state=%llu\n", pack_keysym(config.keybindings[KEY_SAVE_STATE].sym));
-	fprintf(fp, "key_load_state=%llu\n", pack_keysym(config.keybindings[KEY_LOAD_STATE].sym));
-	fprintf(fp, "key_1p_start=%llu\n", pack_keysym(config.keybindings[KEY_1P_START].sym));
-	fprintf(fp, "key_1p_select=%llu\n", pack_keysym(config.keybindings[KEY_1P_SELECT].sym));
-	fprintf(fp, "key_1p_a=%llu\n", pack_keysym(config.keybindings[KEY_1P_A].sym));
-	fprintf(fp, "key_1p_b=%llu\n", pack_keysym(config.keybindings[KEY_1P_B].sym));
-	fprintf(fp, "key_1p_up=%llu\n", pack_keysym(config.keybindings[KEY_1P_UP].sym));
-	fprintf(fp, "key_1p_down=%llu\n", pack_keysym(config.keybindings[KEY_1P_DOWN].sym));
-	fprintf(fp, "key_1p_left=%llu\n", pack_keysym(config.keybindings[KEY_1P_LEFT].sym));
-	fprintf(fp, "key_1p_right=%llu\n", pack_keysym(config.keybindings[KEY_1P_RIGHT].sym));
+	int key_count = 0;
+	Entry** entries = Dictionary_GetAll(config.keybindings, &key_count);
+	for (int i = 0; i < key_count; i++) {
+		Entry* entry = entries[i];
+		Keybinding* keybinding = (Keybinding*)(entry->value);
+		QWORD sym = pack_keysym(keybinding->sym);
+		fprintf(fp, "%s=%llu\n", entry->key, sym);
+	}
 	fprintf(fp, "\n");
 
 	fprintf(fp, "[controller]\n");
+	int mapping_count = 0;
+	entries = Dictionary_GetAll(config.mappings, &mapping_count);
+	for (int i = 0; i < mapping_count; i++) {
+		Entry* entry = entries[i];
+		char* mapping = (char*)(entry->value);
+		fprintf(fp, "%s=%s\n", entry->key, mapping);
+	}
 
 	fclose(fp);
 }

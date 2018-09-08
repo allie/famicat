@@ -123,6 +123,7 @@ typedef struct {
 } APU;
 
 void APU_Init();
+void APU_Reset();
 void APU_Step();
 void APU_MixOutput();
 void APU_ClockSquare(Square*);

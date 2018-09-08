@@ -165,7 +165,26 @@ void Memory_WriteWord(int map, WORD addr, WORD val) {
 
 #ifdef DEBUG_MODE
 void Memory_Dump() {
-	FILE* fp = fopen("memory.log", "w");
+	BYTE dump[0xFFFF];
+
+	for (int i = 0; i < 0xFFFF; i++) {
+		dump[i] = Memory_ReadByte(MAP_CPU, (WORD)i);
+	}
+
+	// Dump raw data
+	FILE* fp = fopen("memory.dump", "wb");
+
+	if (!fp) {
+		printf("Error opening memory.dump for output.\n");
+		return;
+	}
+
+	fwrite(dump, sizeof(dump), 1, fp);
+
+	fclose(fp);
+
+	// Dump to human-readable log file
+	fp = fopen("memory.log", "w");
 
 	if (!fp) {
 		printf("Error opening memory.log for output.\n");
@@ -182,7 +201,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
+				BYTE val = dump[(WORD)(i + k)];
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -205,7 +224,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
+				BYTE val = dump[(WORD)(i + k)];
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -227,7 +246,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
+				BYTE val = dump[(WORD)(i + k)];
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -249,7 +268,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
+				BYTE val = dump[(WORD)(i + k)];
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -271,7 +290,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
+				BYTE val = dump[(WORD)(i + k)];
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -293,7 +312,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
+				BYTE val = dump[(WORD)(i + k)];
 				fprintf(fp, "%02X ", val);
 			}
 
@@ -315,7 +334,7 @@ void Memory_Dump() {
 
 		for (int j = 0; j < 16; j += 4) {
 			for (int k = j; k < (j + 4); k++) {
-				BYTE val = Memory_ReadByte(MAP_CPU, (WORD)(i + k));
+				BYTE val = dump[(WORD)(i + k)];
 				fprintf(fp, "%02X ", val);
 			}
 

@@ -35,7 +35,6 @@ BYTE triangle_lookup[] = { 0xF, 0xE, 0xD, 0xC, 0xB, 0xA, 9, 8, 7, 6, 5, 4, 3, 2,
 APU apu;
 
 void APU_Init() {
-
     for (int i = 0; i < sizeof(apu.pulse_out)/sizeof(double); i++) {
         apu.pulse_out[i] = 95.52 / (8128.0 / i + 100);
     }
@@ -46,6 +45,19 @@ void APU_Init() {
     apu.square2.num = 2;
     apu.noise.shift = 1;
     apu.dmc.dac_counter = 0;
+    apu.square1.length_enabled = 1;
+    apu.square2.length_enabled = 1;
+    apu.triangle.length_enabled = 1;
+    apu.noise.length_enabled = 1;
+
+    Memory_WriteByte(MAP_CPU, 0x4015, 0);
+    Memory_WriteByte(MAP_CPU, 0x4017, 0);
+}
+
+void APU_Reset() {
+    apu.square1.length_enabled = 1;
+    apu.square2.length_enabled = 1;
+    apu.noise.length_enabled = 1;
 }
 
 void APU_Step() {
@@ -63,7 +75,6 @@ void APU_Step() {
 
     //if (apu.dmc.enabled)
         //APU_ClockDMC();
-
 }
 
 void APU_Push() {
@@ -329,7 +340,6 @@ void APU_Write(WORD addr, BYTE val) {
             APU_WriteFlags1(val); break;
         case 0x17:
             APU_WriteFlags2(val); break;
-
     }
 }
 

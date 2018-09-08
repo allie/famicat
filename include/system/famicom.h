@@ -1,6 +1,7 @@
 #ifndef FAMICOM_H
 #define FAMICOM_H
 
+void Famicom_PowerOn();
 void Famicom_Reset();
 int Famicom_Emulate(void*);
 void Famicom_LoadState();

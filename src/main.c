@@ -20,6 +20,10 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
+	if (!Config_Init()) {
+		return 0;
+	}
+
 	if (!Config_Load("famicat.ini")) {
 		Config_LoadDefaults();
 		Config_Write("famicat.ini");
@@ -43,7 +47,7 @@ int main(int argc, char* argv[]) {
 
 	if (argc > 1) {
 		Cart_Load(argv[1]);
-		Famicom_Reset();
+		Famicom_PowerOn();
 	} else {
 		printf("NOTE: No ROM file supplied.\n");
 	}
@@ -63,7 +67,7 @@ int main(int argc, char* argv[]) {
 			}
 
 			else if (e.type == SDL_KEYDOWN) {
-				Input_Handle(e.key.keysym);
+				Input_Handle(e.key.keysym, SDL_CONTROLLER_BUTTON_INVALID);
 			}
 		}
 

@@ -122,19 +122,28 @@ void CPU_Interrupt_RESET() {
 	cpu.S |= 0x24;
 }
 
-/* Re-initialize all CPU registers and variables */
-void CPU_Reset() {
-	cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFC);
+/* Initialize registers */
+void CPU_Init() {
 	cpu.A = 0;
 	cpu.X = 0;
 	cpu.Y = 0;
+	cpu.S = 0x34;
 	cpu.SP = 0xFD;
-	cpu.S = 0x24;
+	cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFC);
 	cpu.opcode = 0;
 	cpu.operaddr = 0;
 	cpu.indoperaddr = 0;
 	cpu.indoperand = 0;
 	cpu.operand = 0;
+	cpu.cycles = 0;
+	cpu.suspended = 0;
+}
+
+/* Reset the CPU */
+void CPU_Reset() {
+	cpu.PC = Memory_ReadWord(MAP_CPU, 0xFFFC);
+	cpu.SP -= 3;
+	SET_FLAG(FLAG_I);
 	cpu.cycles = 0;
 	cpu.suspended = 0;
 }
@@ -174,7 +183,7 @@ DWORD CPU_Step() {
 	cpu.opcode = Memory_ReadByte(MAP_CPU, cpu.PC++);
 
 #ifdef DEBUG_MODE
-	disassemble1();
+	// disassemble1();
 #endif
 
 	/* Fetch operand address */
@@ -188,7 +197,7 @@ DWORD CPU_Step() {
 		cpu.operand = 0;
 
 #ifdef DEBUG_MODE
-	disassemble2();
+	// disassemble2();
 #endif
 
 	/* Execute CPU instruction */

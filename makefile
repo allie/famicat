@@ -14,7 +14,7 @@ endif
 
 all: $(SOURCES) $(EXECUTABLE)
 
-debug: CFLAGS += -D__DEBUG__
+debug: CFLAGS += -DDEBUG_MODE
 debug: all
 
 $(EXECUTABLE): $(OBJECTS)
