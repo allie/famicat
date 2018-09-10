@@ -6,41 +6,53 @@ Memory memory;
 extern Cart cart;
 
 void Memory_Reset() {
-	if (memory.ram != NULL)
+	if (memory.ram != NULL) {
 		free(memory.ram);
+	}
 
-	if (memory.ppureg != NULL)
+	if (memory.ppureg != NULL) {
 		free(memory.ppureg);
+	}
 
-	if (memory.apureg != NULL)
+	if (memory.apureg != NULL) {
 		free(memory.apureg);
+	}
 
-	if (memory.exprom != NULL)
+	if (memory.exprom != NULL) {
 		free(memory.exprom);
+	}
 
-	if (memory.sram != NULL)
+	if (memory.sram != NULL) {
 		free(memory.sram);
+	}
 
-	if (memory.pattern0 != NULL)
+	if (memory.pattern0 != NULL) {
 		free(memory.pattern0);
+	}
 
-	if (memory.pattern1 != NULL)
+	if (memory.pattern1 != NULL) {
 		free(memory.pattern1);
+	}
 
-	if (memory.nametable0 != NULL)
+	if (memory.nametable0 != NULL) {
 		free(memory.nametable0);
+	}
 
-	if (memory.nametable1 != NULL)
+	if (memory.nametable1 != NULL) {
 		free(memory.nametable1);
+	}
 
-	if (memory.nametable2 != NULL)
+	if (memory.nametable2 != NULL) {
 		free(memory.nametable2);
+	}
 
-	if (memory.nametable3 != NULL)
+	if (memory.nametable3 != NULL) {
 		free(memory.nametable3);
+	}
 
-	if (memory.paletteram != NULL)
+	if (memory.paletteram != NULL) {
 		free(memory.paletteram);
+	}
 
 	memory.ram = (BYTE*)calloc(0x800, sizeof(BYTE));
 	memory.ppureg = (BYTE*)calloc(8, sizeof(BYTE));
@@ -59,36 +71,43 @@ void Memory_Reset() {
 
 static BYTE* decodecpu(WORD addr) {
 	// Working RAM + mirrors
-	if (addr < 0x2000)
+	if (addr < 0x2000) {
 		return memory.ram + (addr % 0x800);
+	}
 
 	// PPU control registers + mirrors
-	else if (addr >= 0x2000 && addr < 0x4000)
+	else if (addr >= 0x2000 && addr < 0x4000) {
 		return memory.ppureg + ((addr - 0x2000) % 8);
+	}
 
 	// APU registers
-	else if (addr >= 0x4000 && addr < 0x4020)
+	else if (addr >= 0x4000 && addr < 0x4020) {
 		return memory.apureg;
+	}
 
 	// Cartridge expansion ROM
-	else if (addr >= 0x4020 && addr < 0x6000)
+	else if (addr >= 0x4020 && addr < 0x6000) {
 		return memory.exprom + (addr - 0x4020);
+	}
 
 	// SRAM
-	else if (addr >= 0x6000 && addr < 0x8000)
+	else if (addr >= 0x6000 && addr < 0x8000) {
 		return memory.sram + (addr - 0x6000);
+	}
 
 	// PRG-ROM 1
 	// TODO: MAPPERS!!!
-	else if (addr >= 0x8000 && addr < 0xC000)
+	else if (addr >= 0x8000 && addr < 0xC000) {
 		return cart.prg + (addr - 0x8000);
+	}
 
 	// PRG-ROM 2
 	else if (addr >= 0xC000 && addr <= 0xFFFF) {
-		if (cart.mapper == 0 && cart.prgromsize == 1)
+		if (cart.mapper == 0 && cart.prgromsize == 1) {
 			return cart.prg + (addr - 0xC000);
-		else
+		} else {
 			return cart.prg + (addr - 0x8000);
+		}
 	}
 
 	return 0;
@@ -96,48 +115,57 @@ static BYTE* decodecpu(WORD addr) {
 
 static BYTE* decodeppu(WORD addr) {
 	// Handle nametable mirrors
-	if (addr >= 0x3000 && addr < 0x3F00)
+	if (addr >= 0x3000 && addr < 0x3F00) {
 		addr -= 0x1000;
+	}
 
 	// Pattern table 0
-	if (addr < 0x1000)
+	if (addr < 0x1000) {
 		return memory.pattern0 + addr;
+	}
 
 	// Pattern table 1
-	else if (addr >= 0x1000 && addr < 0x2000)
+	else if (addr >= 0x1000 && addr < 0x2000) {
 		return memory.pattern1 + (addr - 0x1000);
+	}
 
 	// Nametable 0
-	else if (addr >= 0x2000 && addr < 0x2400)
+	else if (addr >= 0x2000 && addr < 0x2400) {
 		return memory.nametable0 + (addr - 0x2000);
+	}
 
 	// Nametable 1
-	else if (addr >= 0x2400 && addr < 0x2800)
+	else if (addr >= 0x2400 && addr < 0x2800) {
 		return memory.nametable1 + (addr - 0x2400);
+	}
 
 	// Nametable 2
-	else if (addr >= 0x2800 && addr < 0x2C00)
+	else if (addr >= 0x2800 && addr < 0x2C00) {
 		return memory.nametable2 + (addr - 0x2800);
+	}
 
 	// Nametable 3
-	else if (addr >= 0x2C00 && addr < 0x3000)
+	else if (addr >= 0x2C00 && addr < 0x3000) {
 		return memory.nametable3 + (addr - 0x2C00);
+	}
 
 	// Palette RAM indices + mirrors
-	else if (addr >= 0x3F00 && addr <= 0x3FFF)
+	else if (addr >= 0x3F00 && addr <= 0x3FFF) {
 		return memory.paletteram + ((addr - 0x3F00) % 0x20);
+	}
 
 	return 0;
 }
 
 BYTE Memory_ReadByte(int map, WORD addr) {
 	if (map == MAP_CPU) {
-		if (addr == 0x4015)
+		if (addr == 0x4015) {
 			return APU_Read();
+		}
 		return *(decodecpu(addr));
-	}
-	else if (map == MAP_PPU)
+	} else if (map == MAP_PPU) {
 		return *(decodeppu(addr));
+	}
 	return 0;
 }
 
@@ -149,13 +177,15 @@ void Memory_WriteByte(int map, WORD addr, BYTE val) {
 	// TODO: write protection
 	if (map == MAP_CPU) {
 		BYTE *block = decodecpu(addr);
-		if (block == memory.apureg)
+		if (block == memory.apureg) {
 			APU_Write(addr, val);
-		else
+		} else {
 			*block = val;
+		}
 	}
-	else if (map == MAP_PPU)
+	else if (map == MAP_PPU) {
 		*(decodeppu(addr)) = val;
+	}
 }
 
 void Memory_WriteWord(int map, WORD addr, WORD val) {
