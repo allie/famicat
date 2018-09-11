@@ -1,15 +1,15 @@
 #include <SDL2/SDL.h>
 #include <math.h>
-#include "cpu/cpu.h"
-#include "apu/apu.h"
 #include "core/graphics.h"
 #include "core/audio.h"
 #include "core/config.h"
 #include "core/input.h"
 #include "core/debugger.h"
-#include "memory/memory.h"
-#include "memory/cart.h"
-#include "system/famicom.h"
+#include "hardware/memory.h"
+#include "hardware/cart.h"
+#include "hardware/cpu.h"
+#include "hardware/apu.h"
+#include "hardware/famicom.h"
 
 extern CPU cpu;
 extern APU apu;

@@ -1,6 +1,6 @@
 #include "core/debugger.h"
 #include "core/graphics.h"
-#include "cpu/cpu.h"
+#include "hardware/cpu.h"
 #include "SDL2/SDL.h"
 #include <stdio.h>
 

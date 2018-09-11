@@ -1,5 +1,5 @@
-#include "cpu/cpu.h"
-#include "memory/memory.h"
+#include "hardware/cpu.h"
+#include "hardware/memory.h"
 
 /* Global CPU */
 CPU cpu;

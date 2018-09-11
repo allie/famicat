@@ -1,8 +1,8 @@
 #include "core/config.h"
 #include "core/debugger.h"
 #include "core/graphics.h"
-#include "io/io.h"
-#include "system/famicom.h"
+#include "hardware/io.h"
+#include "hardware/famicom.h"
 #include "inih/ini.h"
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-#include "ppu/ppu.h"
+#include "hardware/ppu.h"
 
 PPU ppu;
 extern CPU cpu;
@@ -36,6 +36,10 @@ void PPU_Init() {
 	ppu.first_write = 1;
 	ppu.vram_temp = 0;
 	ppu.fine_x = 0;
+
+	ppu.cycle = 0;
+	ppu.scanline = 0;
+	ppu.frame = 0;
 }
 
 void PPU_Reset() {

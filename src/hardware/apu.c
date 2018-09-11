@@ -1,4 +1,4 @@
-#include "apu/apu.h"
+#include "hardware/apu.h"
 
 BYTE length_lookup[] = {
     0x0A, 0xFE,
@@ -329,7 +329,7 @@ void APU_ClockDMC() {
     }
 }
 
-void APU_Write(WORD addr, BYTE val) {
+void APU_WriteRegister(WORD addr, BYTE val) {
     switch (addr & 0x00FF) {
         /* 4000-4003 square1 */
         case 0x00: APU_WriteSquareControl(&apu.square1, val); break;
@@ -498,7 +498,7 @@ void APU_WriteFlags2(BYTE val) {
     }
 }
 
-BYTE APU_Read() {
+BYTE APU_ReadRegister(WORD addr) {
     BYTE val = 0;
     /* if-d nt21   DMC IRQ, frame IRQ, length counter statuses */
     val |= apu.dmc.irq_throw << 7;

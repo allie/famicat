@@ -3,8 +3,8 @@
 #include "core/debugger.h"
 #include "core/graphics.h"
 #include "utils/dictionary.h"
-#include "system/famicom.h"
-#include "io/io.h"
+#include "hardware/famicom.h"
+#include "hardware/io.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

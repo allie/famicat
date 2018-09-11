@@ -2,8 +2,8 @@
 #define PPU_H
 
 #include "../common.h"
-#include "../cpu/cpu.h"
-#include "../memory/memory.h"
+#include "cpu.h"
+#include "memory.h"
 
 typedef struct {
 	// Registers
@@ -44,17 +44,16 @@ typedef struct {
 
 void PPU_Init();
 void PPU_Reset();
-
-void PPU_WriteController(BYTE val);
-void PPU_WriteMask(BYTE val);
+void PPU_WriteController(BYTE);
+void PPU_WriteMask(BYTE);
 BYTE PPU_ReadStatus(); // necessary?
-void PPU_WriteOAMAddress(BYTE val);
-void PPU_WriteOAMData(BYTE val);
+void PPU_WriteOAMAddress(BYTE);
+void PPU_WriteOAMData(BYTE);
 BYTE PPU_ReadOAMData(); // necessary?
-void PPU_WriteScroll(BYTE val);
-void PPU_WriteAddress(BYTE val);
-void PPU_WriteData(BYTE val);
+void PPU_WriteScroll(BYTE);
+void PPU_WriteAddress(BYTE);
+void PPU_WriteData(BYTE);
 BYTE PPU_ReadData(); // necessary?
-void PPU_WriteOAMDMA(BYTE val);
+void PPU_WriteOAMDMA(BYTE);
 
 #endif

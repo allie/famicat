@@ -25,6 +25,7 @@ typedef struct {
 	BYTE* trainer;
 	BYTE* prg;
 	BYTE* chr;
+	BYTE* sram;
 } Cart;
 
 void Cart_Load(const char* file);

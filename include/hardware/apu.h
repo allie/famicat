@@ -2,9 +2,9 @@
 #define APU_H
 
 #include "../common.h"
-#include "../memory/memory.h"
 #include "../core/audio.h"
-#include "../cpu/cpu.h"
+#include "memory.h"
+#include "cpu.h"
 #include <stdio.h>
 
 #define HI_PASS_STRONG 225574
@@ -131,8 +131,6 @@ void APU_ClockNoise();
 void APU_ClockTriangle();
 void APU_ClockDMC();
 
-BYTE APU_Read();
-void APU_Write(WORD addr, BYTE val);
 void APU_WriteSquareControl(Square*, BYTE);
 void APU_WriteSquareSweep(Square*, BYTE);
 void APU_WriteSquareLow(Square*, BYTE);

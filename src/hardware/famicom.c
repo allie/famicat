@@ -1,9 +1,9 @@
-#include "system/famicom.h"
-#include "cpu/cpu.h"
-#include "apu/apu.h"
+#include "hardware/famicom.h"
+#include "hardware/cpu.h"
+#include "hardware/apu.h"
 
 #ifdef DEBUG_MODE
-#include "memory/memory.h"
+#include "hardware/memory.h"
 #endif
 
 extern CPU cpu;
@@ -40,15 +40,17 @@ static void Famicom_Step() {
 }
 
 void Famicom_PowerOn() {
-	printf("Powering on console...\n");
+	printf("Powering on Famicom...\n");
 	CPU_Init();
 	APU_Init();
+	PPU_Init();
 }
 
 void Famicom_Reset() {
-	printf("Resetting console...\n");
+	printf("Resetting Famicom...\n");
 	CPU_Reset();
 	APU_Reset();
+	PPU_Reset();
 }
 
 int Famicom_Emulate(void* args) {
