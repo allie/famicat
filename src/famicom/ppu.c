@@ -3,6 +3,42 @@
 PPU ppu;
 extern CPU cpu;
 
+#define SCANLINE_MAX 262
+
+static DWORD colours[] = {
+	0x666666, 0x002A88, 0x1412A7, 0x3B00A4, 0x5C007E, 0x6E0040, 0x6C0600, 0x561D00,
+	0x333500, 0x0B4800, 0x005200, 0x004F08, 0x00404D, 0x000000, 0x000000, 0x000000,
+	0xADADAD, 0x155FD9, 0x4240FF, 0x7527FE, 0xA01ACC, 0xB71E7B, 0xB53120, 0x994E00,
+	0x6B6D00, 0x388700, 0x0C9300, 0x008F32, 0x007C8D, 0x000000, 0x000000, 0x000000,
+	0xFFFEFF, 0x64B0FF, 0x9290FF, 0xC676FF, 0xF36AFF, 0xFE6ECC, 0xFE8170, 0xEA9E22,
+	0xBCBE00, 0x88D800, 0x5CE430, 0x45E082, 0x48CDDE, 0x4F4F4F, 0x000000, 0x000000,
+	0xFFFEFF, 0xC0DFFF, 0xD3D2FF, 0xE8C8FF, 0xFBC2FF, 0xFEC4EA, 0xFECCC5, 0xF7D8A5,
+	0xE4E594, 0xCFEF96, 0xBDF4AB, 0xB3F3CC, 0xB5EBF2, 0xB8B8B8, 0x000000, 0x000000,
+};
+
+static void PPU_ClearBuffers() {
+	if (ppu.buffer_front) {
+		free(ppu.buffer_front);
+	}
+
+	if (ppu.buffer_back) {
+		free(ppu.buffer_back);
+	}
+
+	ppu.buffer_front = (RGBA*)calloc(SCREEN_WIDTH * SCREEN_HEIGHT, sizeof(RGBA));
+	ppu.buffer_back = (RGBA*)calloc(SCREEN_WIDTH * SCREEN_HEIGHT, sizeof(RGBA));
+
+	for (int i = 0; i < SCREEN_HEIGHT; i++) {
+		for (int j = 0; j < SCREEN_WIDTH; j++) {
+			int index = i * SCREEN_WIDTH + j;
+			ppu.buffer_front[index].r = 0;
+			ppu.buffer_front[index].g = 0;
+			ppu.buffer_front[index].b = 0;
+			ppu.buffer_front[index].a = 255;
+		}
+	}
+}
+
 void PPU_Init() {
 	if (ppu.oam != NULL)
 		free(ppu.oam);
@@ -37,13 +73,28 @@ void PPU_Init() {
 	ppu.vram_temp = 0;
 	ppu.fine_x = 0;
 
+	for (int i = 0; i < NUM_PALETTES; i++) {
+		ppu.palettes[i].r = (BYTE)(colours[i] >> 16);
+		ppu.palettes[i].g = (BYTE)(colours[i] >> 8);
+		ppu.palettes[i].b = (BYTE)colours[i];
+		ppu.palettes[i].a = 255;
+	}
+
 	ppu.cycle = 0;
 	ppu.scanline = 0;
 	ppu.frame = 0;
+
+	PPU_ClearBuffers();
 }
 
 void PPU_Reset() {
-	// TODO
+	ppu.cycle = CYCLE_STEP_END;
+	ppu.scanline = SCANLINE_POSTLINE;
+	ppu.frame = 0;
+	PPU_WriteController(0);
+	PPU_WriteMask(0);
+	PPU_WriteOAMAddress(0);
+	PPU_ClearBuffers();
 }
 
 void PPU_WriteController(BYTE val) {
@@ -169,4 +220,157 @@ void PPU_WriteOAMDMA(BYTE val) {
 		CPU_Suspend(514);
 	else
 		CPU_Suspend(513);
+}
+
+static void PPU_GetNameTableByte() {
+}
+
+static void PPU_GetAttributeTableByte() {
+}
+
+static void PPU_GetLowTileByte() {
+}
+
+static void PPU_GetHighTileByte() {
+}
+
+static void PPU_StoreTileData() {
+}
+
+static void PPU_IncrementX() {
+}
+
+static void PPU_IncrementY() {
+}
+
+static void PPU_CopyX() {
+}
+
+static void PPU_CopyY() {
+}
+
+static void PPU_SetVBlank() {
+}
+
+static void PPU_ClearVBlank() {
+}
+
+static void PPU_EvaluateSprites() {
+}
+
+static void PPU_RenderPixel() {
+}
+
+static void PPU_Tick() {
+	if (ppu.nmi_delay > 0) {
+		ppu.nmi_delay--;
+
+		if (ppu.nmi_delay == 0 && ppu.nmi_output && ppu.nmi_occurred) {
+			// Trigger NMI
+		}
+	}
+
+	if (ppu.show_bg && ppu.show_sprites) {
+		if (ppu.odd_frame && ppu.scanline == SCANLINE_FRAME_END) {
+			ppu.cycle = 0;
+			ppu.scanline = 0;
+			ppu.frame++;
+			ppu.odd_frame = !ppu.odd_frame;
+			return;
+		}
+	}
+
+	ppu.cycle++;
+
+	if (ppu.cycle > CYCLE_STEP_END) {
+		ppu.cycle = 0;
+		ppu.scanline++;
+
+		if (ppu.scanline > SCANLINE_FRAME_END) {
+			ppu.scanline = 0;
+			ppu.frame++;
+			ppu.odd_frame = !ppu.odd_frame;
+		}
+	}
+}
+
+void PPU_Step() {
+	PPU_Tick();
+
+	int line_preline = ppu.scanline == SCANLINE_PRELINE;
+	int line_postline = ppu.scanline == SCANLINE_POSTLINE;
+	int line_visible = ppu.scanline <= SCANLINE_VISIBLE_END;
+	int line_render = line_preline || line_visible;
+	int line_vblank = ppu.scanline == SCANLINE_VBLANK_BEGIN;
+
+	int cycle_begin = ppu.cycle == CYCLE_BEGIN;
+	int cycle_prefetch = ppu.cycle >= CYCLE_PREFETCH_BEGIN && ppu.cycle <= CYCLE_PREFETCH_END;
+	int cycle_visible = ppu.cycle >= CYCLE_VISIBLE_BEGIN && ppu.cycle <= CYCLE_VISIBLE_END;
+	int cycle_fetch = cycle_prefetch || cycle_visible;
+	int cycle_copy_y = ppu.cycle >= CYCLE_COPY_Y_BEGIN && ppu.cycle <= CYCLE_COPY_Y_END;
+	int cycle_sprite = ppu.cycle == CYCLE_EVALUATE_SPRITE;
+
+	if (ppu.show_bg || ppu.show_sprites) {
+		if (line_visible && cycle_visible) {
+			PPU_RenderPixel();
+		}
+
+		if (line_render && cycle_fetch) {
+			ppu.tile <<= 4;
+
+			switch (ppu.cycle % 8) {
+				case 1:
+					PPU_GetNameTableByte();
+					break;
+				case 3:
+					PPU_GetAttributeTableByte();
+					break;
+				case 5:
+					PPU_GetLowTileByte();
+					break;
+				case 7:
+					PPU_GetHighTileByte();
+					break;
+				case 0:
+					PPU_StoreTileData();
+					break;
+			}
+		}
+
+		if (line_preline && cycle_copy_y) {
+			PPU_CopyY();
+		}
+
+		if (line_render) {
+			if (cycle_fetch && ppu.cycle % 8 == 0) {
+				PPU_IncrementX();
+			}
+
+			if (ppu.cycle == CYCLE_INCREMENT_Y) {
+				PPU_IncrementY();
+			}
+
+			if (ppu.cycle == CYCLE_COPY_X) {
+				PPU_CopyX();
+			}
+		}
+
+		if (cycle_sprite) {
+			if (line_visible) {
+				PPU_EvaluateSprites();
+			} else {
+				ppu.sprite_count = 0;
+			}
+		}
+	}
+
+	if (line_vblank && cycle_begin) {
+		PPU_SetVBlank();
+	}
+
+	if (line_preline && cycle_begin) {
+		PPU_ClearVBlank();
+		ppu.sprite_0hit = 0;
+		ppu.sprite_overflow = 0;
+	}
 }

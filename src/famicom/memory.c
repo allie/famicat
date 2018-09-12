@@ -103,7 +103,8 @@ BYTE Memory_ReadByte(int map, WORD addr) {
 
 		// APU registers
 		else if (addr >= 0x4000 && addr < 0x4020) {
-			return APU_ReadRegister(addr);
+			// return APU_ReadRegister(addr);
+			return 0;
 		}
 
 		// Cartridge expansion ROM
@@ -227,7 +228,7 @@ void Memory_WriteByte(int map, WORD addr, BYTE val) {
 
 		// APU registers
 		else if (addr >= 0x4000 && addr < 0x4020) {
-			APU_WriteRegister(addr, val);
+			// APU_WriteRegister(addr, val);
 		}
 
 		// Cartridge expansion ROM

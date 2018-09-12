@@ -9,10 +9,12 @@
 #include "famicom/cart.h"
 #include "famicom/cpu.h"
 #include "famicom/apu.h"
+#include "famicom/ppu.h"
 #include "famicom/famicom.h"
 
 extern CPU cpu;
 extern APU apu;
+extern PPU ppu;
 
 int main(int argc, char* argv[]) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -72,6 +74,8 @@ int main(int argc, char* argv[]) {
 		}
 
 		Graphics_Clear();
+		Graphics_RenderBuffer(ppu.buffer_back, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Graphics_RenderBuffer(ppu.buffer_front, SCREEN_WIDTH, SCREEN_HEIGHT);
 		Debugger_Draw();
 		Graphics_Present();
 	}

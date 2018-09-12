@@ -14,6 +14,7 @@ enum {
 };
 
 int Graphics_Init();
+void Graphics_RenderBuffer(RGBA*, unsigned, unsigned);
 void Graphics_RenderTexture(SDL_Texture*, SDL_Rect*, SDL_Rect*);
 void Graphics_RenderString(const char*, unsigned, unsigned);
 void Graphics_RenderHex(unsigned long, unsigned, unsigned, unsigned);

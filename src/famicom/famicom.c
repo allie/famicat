@@ -1,13 +1,13 @@
 #include "famicom/famicom.h"
 #include "famicom/cpu.h"
 #include "famicom/apu.h"
-
-#ifdef DEBUG_MODE
+#include "famicom/ppu.h"
 #include "famicom/memory.h"
-#endif
 
 extern CPU cpu;
 extern APU apu;
+extern PPU ppu;
+extern Memory memory;
 
 static void Famicom_Step() {
 	int last_apu_tick;
@@ -16,9 +16,13 @@ static void Famicom_Step() {
 	while (cpu.cycles < (CLOCK_SPEED / 60)) {
 		int cycles = CPU_Step();
 
+		for (int i = 0; i < cycles * 3; i++) {
+			PPU_Step();
+			memory.mapper.step();
+		}
+
 		for (int i = 0; i < cycles; i++)
 			APU_Step();
-
 
 		if (cpu.cycles - apu.last_frame_tick >= (CLOCK_SPEED / 240)) {
 			APU_FrameSequencerStep();

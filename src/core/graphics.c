@@ -46,6 +46,33 @@ int Graphics_Init() {
 	return 1;
 }
 
+void Graphics_RenderBuffer(RGBA* buf, unsigned width, unsigned height) {
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
+		(void*)buf,
+		width,
+		height,
+		32,
+		4 * width,
+		(DWORD)0x000000FF,
+		(DWORD)0x0000FF00,
+		(DWORD)0x00FF0000,
+		(DWORD)0xFF000000
+	);
+
+	if (surface == NULL) {
+		printf("Creating surface failed: %s\n", SDL_GetError());
+		exit(1);
+	}
+
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+
+	SDL_Rect src = {0, 0, width, height};
+	SDL_Rect dst = {0, 0, width, height};
+
+	SDL_RenderCopy(renderer, texture, &src, &dst);
+}
+
 void Graphics_RenderTexture(SDL_Texture* texture, SDL_Rect* src, SDL_Rect* dst) {
 	SDL_RenderCopy(renderer, texture, src, dst);
 }

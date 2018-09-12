@@ -12,6 +12,10 @@ typedef uint64_t QWORD;
 typedef int16_t SWORD;
 
 typedef struct {
+	BYTE r, g, b, a;
+} RGBA;
+
+typedef struct {
 	int x;
 	int y;
 } Vector2;
