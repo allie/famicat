@@ -59,5 +59,6 @@ void CPU_Init();
 void CPU_Reset();
 void CPU_Suspend(DWORD duration);
 DWORD CPU_Step();
+void CPU_Interrupt_NMI();
 
 #endif

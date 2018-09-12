@@ -74,7 +74,6 @@ int main(int argc, char* argv[]) {
 		}
 
 		Graphics_Clear();
-		Graphics_RenderBuffer(ppu.buffer_back, SCREEN_WIDTH, SCREEN_HEIGHT);
 		Graphics_RenderBuffer(ppu.buffer_front, SCREEN_WIDTH, SCREEN_HEIGHT);
 		Debugger_Draw();
 		Graphics_Present();

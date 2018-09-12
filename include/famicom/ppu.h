@@ -38,15 +38,16 @@ typedef struct {
 	BYTE status;
 	BYTE oam_addr;
 	BYTE scroll;
-	BYTE addr;
-	BYTE data;
+	BYTE vram_addr;
+	BYTE vram_data;
 	BYTE odd_frame;
 	BYTE oamdma;
 
 	// Controller
+	BYTE nametable_addr;
 	BYTE vram_addr_inc;
-	WORD sprite_pattern_addr;
-	WORD bg_pattern_addr;
+	BYTE sprite_pattern_addr;
+	BYTE bg_pattern_addr;
 	BYTE sprite_height;
 	BYTE nmi_on_vblank;
 
@@ -62,8 +63,8 @@ typedef struct {
 
 	// Scroll
 	BYTE first_write;
-	BYTE vram_temp;
 	BYTE fine_x;
+	BYTE fine_y;
 
 	// Palettes
 	RGBA palettes[NUM_PALETTES];
@@ -80,15 +81,25 @@ typedef struct {
 	int nmi_previous;
 	int nmi_delay;
 
+	// Sprites
+	int sprite_0hit;
+	int sprite_overflow;
+	int sprite_count;
+	DWORD sprite_patterns[8];
+	BYTE sprite_positions[8];
+	BYTE sprite_priorities[8];
+	BYTE sprite_indices[8];
+
 	// Temporary variables + counters
-	BYTE addr_temp;
+	BYTE vram_addr_temp;
 	WORD cycle;
 	WORD scanline;
 	QWORD frame;
 	int vblank;
-	int sprite_0hit;
-	int sprite_overflow;
-	int sprite_count;
+	BYTE nametable_byte;
+	BYTE attributetable_byte;
+	BYTE tile_byte_low;
+	BYTE tile_byte_high;
 } PPU;
 
 void PPU_Init();
@@ -104,7 +115,7 @@ void PPU_WriteAddress(BYTE);
 void PPU_WriteData(BYTE);
 BYTE PPU_ReadData();
 void PPU_WriteOAMDMA(BYTE);
-void PPU_ReadPalette(WORD);
+BYTE PPU_ReadPalette(WORD);
 void PPU_WritePalette(WORD, BYTE);
 void PPU_Step();
 

@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-std=c99 -g -c -Wall -D_POSIX_C_SOURCE=200112L -DUNOFFICIAL_MODE -Iinclude -I/usr/local/include -Ilib
+CFLAGS=-std=c99 -g -c -D_POSIX_C_SOURCE=200112L -DUNOFFICIAL_MODE -Iinclude -I/usr/local/include -Ilib
 LDFLAGS=-lSDL2 -lSDL2_image -lm
 SOURCES=$(shell find src -name "*.c" -not -name "*.partial.c")
 SOURCES+=lib/inih/ini.c

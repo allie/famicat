@@ -3,44 +3,61 @@
 #include "famicom/apu.h"
 #include "famicom/ppu.h"
 #include "famicom/memory.h"
+#include "time.h"
 
 extern CPU cpu;
 extern APU apu;
 extern PPU ppu;
 extern Memory memory;
 
-static void Famicom_Step() {
+static struct timespec diff(struct timespec start, struct timespec end) {
+	struct timespec temp;
+
+	if ((end.tv_nsec-start.tv_nsec) < 0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec - 1;
+		temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec - start.tv_sec;
+		temp.tv_nsec = end.tv_nsec - start.tv_nsec;
+	}
+
+	return temp;
+}
+
+static DWORD step(int* last_apu_tick, int* flip) {
+	int cycles = CPU_Step();
+
+	for (int i = 0; i < cycles * 3; i++) {
+		PPU_Step();
+		memory.mapper.step();
+	}
+
+	for (int i = 0; i < cycles; i++)
+		APU_Step();
+
+	if (cpu.cycles - apu.last_frame_tick >= (CLOCK_SPEED / 240)) {
+		APU_FrameSequencerStep();
+		apu.last_frame_tick = cpu.cycles;
+	}
+
+	if (cpu.cycles - *last_apu_tick >= ((CLOCK_SPEED / 44100) + *flip)) {
+		APU_Push();
+		*last_apu_tick = cpu.cycles;
+		*flip = (*flip + 1) & 0x1;
+	}
+
+	return cycles;
+}
+
+void Famicom_Step(double dt) {
+	cpu.cycles = (int)(CLOCK_SPEED * dt);
+
 	int last_apu_tick;
 	int flip;
 
-	while (cpu.cycles < (CLOCK_SPEED / 60)) {
-		int cycles = CPU_Step();
-
-		for (int i = 0; i < cycles * 3; i++) {
-			PPU_Step();
-			memory.mapper.step();
-		}
-
-		for (int i = 0; i < cycles; i++)
-			APU_Step();
-
-		if (cpu.cycles - apu.last_frame_tick >= (CLOCK_SPEED / 240)) {
-			APU_FrameSequencerStep();
-			apu.last_frame_tick = cpu.cycles;
-		}
-
-		if (cpu.cycles - last_apu_tick >= ((CLOCK_SPEED / 44100) + flip)) {
-			APU_Push();
-			last_apu_tick = cpu.cycles;
-			flip = (flip + 1) & 0x1;
-		}
+	while (cpu.cycles > 0) {
+		cpu.cycles -= step(&last_apu_tick, &flip);
 	}
-
-	cpu.cycles -= (CLOCK_SPEED / 60);
-
-#ifdef DEBUG_MODE
-	Memory_Dump();
-#endif
 }
 
 void Famicom_PowerOn() {
@@ -58,8 +75,19 @@ void Famicom_Reset() {
 }
 
 int Famicom_Emulate(void* args) {
+	struct timespec current_time;
+	struct timespec new_time;
+
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &current_time);
+
 	while (2) {
-		Famicom_Step();
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &new_time);
+		struct timespec dt = diff(current_time, new_time);
+		printf("%ld %f\n", dt.tv_nsec, (double)dt.tv_nsec / 1000000000.0);
+
+		Famicom_Step((double)dt.tv_nsec / 1000000000.0);
+
+		memcpy(&current_time, &new_time, sizeof(struct timespec));
 	}
 
 	return 0;

@@ -1,7 +1,10 @@
 #include "famicom/ppu.h"
+#include "famicom/cpu.h"
+#include <string.h>
 
 PPU ppu;
 extern CPU cpu;
+extern Memory memory;
 
 #define SCANLINE_MAX 262
 
@@ -50,8 +53,8 @@ void PPU_Init() {
 	ppu.status = 0xA0;
 	ppu.oam_addr = 0;
 	ppu.scroll = 0;
-	ppu.addr = 0;
-	ppu.data = 0;
+	ppu.vram_addr = 0;
+	ppu.vram_data = 0;
 	ppu.odd_frame = 0;
 
 	ppu.vram_addr_inc = 1;
@@ -70,7 +73,7 @@ void PPU_Init() {
 	ppu.emphasize_blue = 0;
 
 	ppu.first_write = 1;
-	ppu.vram_temp = 0;
+	ppu.vram_addr_temp = 0;
 	ppu.fine_x = 0;
 
 	for (int i = 0; i < NUM_PALETTES; i++) {
@@ -124,7 +127,7 @@ void PPU_WriteController(BYTE val) {
 		ppu.nmi_on_vblank = (val >> 7) & 0x1;
 
 		// Change scroll latch to match base nametable address
-		ppu.vram_temp = (ppu.vram_temp & 0xF3FF) | ((WORD)(val & 0x3) << 10);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xF3FF) | ((WORD)(val & 0x3) << 10);
 	}
 }
 
@@ -175,10 +178,10 @@ void PPU_WriteScroll(BYTE val) {
 	if (ppu.first_write) {
 		// Horizontal scroll offset
 		ppu.fine_x = val & 0x7;
-		ppu.vram_temp = (ppu.vram_temp & 0x7FE0) | ((val & 0xF8) >> 3);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x7FE0) | ((val & 0xF8) >> 3);
 	} else {
 		// Vertical scroll offset
-		ppu.vram_temp = (ppu.vram_temp & 0xC1F) | (((WORD)val & 0xF8) << 2) | (((WORD)val & 7) << 12);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xC1F) | (((WORD)val & 0xF8) << 2) | (((WORD)val & 7) << 12);
 	}
 
 	ppu.first_write = !ppu.first_write;
@@ -187,11 +190,11 @@ void PPU_WriteScroll(BYTE val) {
 void PPU_WriteAddress(BYTE val) {
 	if (ppu.first_write) {
 		// Clear bits 14-8 (and 15), save 5-0 of val to 13-8 of temp
-		ppu.vram_temp = (ppu.vram_temp & 0x00FF) | (((WORD)val & 0x3F) << 8);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x00FF) | (((WORD)val & 0x3F) << 8);
 	} else {
 		// Copy lower 8 bits to temp, set addr to temp value
-		ppu.vram_temp = (ppu.vram_temp & 0x7F00) | val;
-		ppu.addr = ppu.vram_temp;
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x7F00) | val;
+		ppu.vram_addr = ppu.vram_addr_temp;
 	}
 
 	ppu.first_write = !ppu.first_write;
@@ -199,15 +202,16 @@ void PPU_WriteAddress(BYTE val) {
 
 void PPU_WriteData(BYTE val) {
 	// TODO: Disable during rendering
-	Memory_WriteByte(MAP_PPU, ppu.addr, val);
-	ppu.addr += ppu.vram_addr_inc;
+	Memory_WriteByte(MAP_PPU, ppu.vram_addr, val);
+	ppu.vram_addr += ppu.vram_addr_inc;
 }
 
 // necessary?
 BYTE PPU_ReadData() {
 	// TODO: Disable during rendering
-	Memory_ReadByte(MAP_PPU, ppu.addr);
-	ppu.addr += ppu.vram_addr_inc;
+	ppu.vram_data = Memory_ReadByte(MAP_PPU, ppu.vram_addr);
+	ppu.vram_addr += ppu.vram_addr_inc;
+	return ppu.vram_data;
 }
 
 void PPU_WriteOAMDMA(BYTE val) {
@@ -222,43 +226,284 @@ void PPU_WriteOAMDMA(BYTE val) {
 		CPU_Suspend(513);
 }
 
+BYTE PPU_ReadPalette(WORD addr) {
+	if (addr >= 16 && addr % 4 == 0) {
+		addr -= 16;
+	}
+
+	return memory.paletteram[addr];
+}
+
+void PPU_WritePalette(WORD addr, BYTE val) {
+	if (addr >= 16 && addr % 4 == 0) {
+		addr -= 16;
+	}
+
+	memory.paletteram[addr] = val;
+}
+
 static void PPU_GetNameTableByte() {
+	BYTE vram_addr = ppu.vram_addr;
+	WORD addr = 0x2000 | (vram_addr & 0x0FFF);
+	ppu.nametable_byte = Memory_ReadByte(MAP_PPU, addr);
 }
 
 static void PPU_GetAttributeTableByte() {
+	BYTE vram_addr = ppu.vram_addr;
+	WORD addr = 0x23C0 | (vram_addr & 0x0C00) | ((vram_addr >> 4) & 0x38) | ((vram_addr >> 2) & 0x07);
+	BYTE shift = ((vram_addr >> 4) & 4) | (vram_addr & 2);
+	ppu.attributetable_byte = ((Memory_ReadByte(MAP_PPU, addr) >> shift) & 3) << 2;
 }
 
 static void PPU_GetLowTileByte() {
+	BYTE fine_y = (ppu.vram_addr >> 12) & 7;
+	WORD addr = 0x1000 * (WORD)ppu.bg_pattern_addr + (WORD)ppu.nametable_byte * 16 + fine_y;
+	ppu.tile_byte_low = Memory_ReadByte(MAP_PPU, addr);
 }
 
 static void PPU_GetHighTileByte() {
+	BYTE fine_y = (ppu.vram_addr >> 12) & 7;
+	WORD addr = 0x1000 * (WORD)ppu.bg_pattern_addr + (WORD)ppu.nametable_byte * 16 + fine_y;
+	ppu.tile_byte_high = Memory_ReadByte(MAP_PPU, addr + 8);
 }
 
 static void PPU_StoreTileData() {
+	DWORD data = 0;
+
+	for (int i = 0; i < 8; i++) {
+		BYTE low = (ppu.tile_byte_low & 0x80) >> 7;
+		BYTE high = (ppu.tile_byte_high & 0x80) >> 6;
+		ppu.tile_byte_low <<= 1;
+		ppu.tile_byte_high <<= 1;
+		data <<= 4;
+		data |= (DWORD)(ppu.attributetable_byte | low | high);
+	}
+
+	ppu.tile |= (QWORD)data;
+}
+
+static DWORD PPU_GetTileData() {
+	return (DWORD)(ppu.tile >> 32);
 }
 
 static void PPU_IncrementX() {
+	if ((ppu.vram_addr & 0x001F) == 31) {
+		ppu.vram_addr &= 0xFFE0;
+		ppu.vram_addr ^= 0x0400;
+	} else {
+		ppu.vram_addr++;
+	}
 }
 
 static void PPU_IncrementY() {
+	if ((ppu.vram_addr & 0x7000) != 0x7000) {
+		ppu.vram_addr += 0x1000;
+	} else {
+		ppu.vram_addr &= 0x8FFF;
+		WORD y = (ppu.vram_addr & 0x03E0) >> 5;
+
+		if (y == 29) {
+			y = 0;
+			ppu.vram_addr ^= 0x0800;
+		} else if (y == 31) {
+			y = 0;
+		} else {
+			y++;
+		}
+		ppu.vram_addr = (ppu.vram_addr & 0xFC1F) | (y << 5);
+	}
 }
 
 static void PPU_CopyX() {
+	ppu.vram_addr = (ppu.vram_addr & 0xFBE0) | (ppu.vram_addr_temp & 0x041F);
 }
 
 static void PPU_CopyY() {
+	ppu.vram_addr = (ppu.vram_addr & 0x841F) | (ppu.vram_addr_temp & 0x7BE0);
+}
+
+static void PPU_NMIChange() {
+	BYTE nmi = ppu.nmi_output && ppu.nmi_occurred;
+
+	if (nmi && !ppu.nmi_previous) {
+		// TODO fix this timing
+		ppu.nmi_delay = 15;
+	}
+
+	ppu.nmi_previous = nmi;
 }
 
 static void PPU_SetVBlank() {
+	size_t size = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(RGBA);
+	RGBA* buf = (RGBA*)malloc(size);
+	memcpy(buf, ppu.buffer_front, size);
+	memcpy(ppu.buffer_front, ppu.buffer_back, size);
+	memcpy(ppu.buffer_back, buf, size);
+	free(buf);
+	ppu.nmi_occurred = 1;
+	PPU_NMIChange();
 }
 
 static void PPU_ClearVBlank() {
+	ppu.nmi_occurred = 0;
+	PPU_NMIChange();
+}
+
+static BYTE PPU_GetBackgroundPixel() {
+	if (ppu.show_bg) {
+		return 0;
+	}
+
+	BYTE pixel = PPU_GetTileData() >> ((7 - ppu.fine_x) * 4);
+	return (BYTE)(pixel & 0x0F);
+}
+
+static BYTE PPU_GetSpritePixel(int* num) {
+	if (ppu.show_sprites) {
+		*num = 0;
+		return 0;
+	}
+
+	for (int i = 0; i < ppu.sprite_count; i++) {
+		int offset = (ppu.cycle - 1) - (int)ppu.sprite_positions[i];
+
+		if (offset < 0 || offset > 7) {
+			continue;
+		}
+
+		offset = 7 - offset;
+
+		BYTE colour = (BYTE)((ppu.sprite_patterns[i] >> (BYTE)(offset*4)) & 0x0F);
+
+		if (colour % 4 == 0) {
+			continue;
+		}
+
+		*num = i;
+		return colour;
+	}
+
+	*num = 0;
+	return 0;
+}
+
+static DWORD PPU_GetSpritePattern(int index, int row) {
+	BYTE tile = ppu.oam[index * 4 + 1];
+	BYTE attr = ppu.oam[index * 4 + 2];
+	WORD addr = 0;
+
+	if (ppu.sprite_height == 0) {
+		if (attr * 0x80 == 0x80) {
+			row = 7 - row;
+		}
+
+		addr = 0x1000 * (WORD)ppu.sprite_pattern_addr + ((WORD)tile * 16) + (WORD)row;
+	}
+
+	int a = (attr & 3) << 2;
+	BYTE low_tile = Memory_ReadByte(MAP_PPU, addr);
+	BYTE high_tile = Memory_ReadByte(MAP_PPU, addr + 8);
+
+	DWORD data = 0;
+
+	for (int i = 0; i < 8; i++) {
+		BYTE low = 0;
+		BYTE high = 0;
+
+		if ((attr & 0x40) == 0x40) {
+			low = (low_tile & 1) << 0;
+			high = (high_tile & 1) << 1;
+			low_tile >>= 1;
+			high_tile >>= 1;
+		} else {
+			low = (low_tile & 0x80) >> 7;
+			high = (high_tile & 0x80) >> 6;
+			low_tile <<= 1;
+			high_tile <<= 1;
+		}
+	}
+
+	return data;
 }
 
 static void PPU_EvaluateSprites() {
+	int height = ppu.sprite_height == 0 ? 8 : 16;
+	int count = 0;
+
+	for (int i = 0; i < 64; i++) {
+		BYTE y = ppu.oam[i * 4];
+		BYTE x = ppu.oam[i * 4 + 3];
+		BYTE a = ppu.oam[i * 4 + 2];
+		int row = ppu.scanline - y;
+
+		if (row < 0 || row >= height) {
+			continue;
+		}
+
+		if (count < 8) {
+			ppu.sprite_patterns[count] = PPU_GetSpritePattern(i, row);
+			ppu.sprite_positions[count] = x;
+			ppu.sprite_priorities[count] = (a >> 5) & 1;
+			ppu.sprite_indices[count] = (BYTE)i;
+		}
+
+		count++;
+	}
+
+	if (count > 8) {
+		count = 8;
+		ppu.sprite_overflow = 1;
+	}
+
+	ppu.sprite_count = count;
 }
 
 static void PPU_RenderPixel() {
+	int x = ppu.cycle - 1;
+	int y = ppu.scanline;
+
+	BYTE bgpixel = PPU_GetBackgroundPixel();
+
+	int spritepixel_num = 0;
+	BYTE spritepixel = PPU_GetSpritePixel(&spritepixel_num);
+
+	if (x < 8) {
+		if (!ppu.show_bg_left) {
+			bgpixel = 0;
+		}
+
+		if (!ppu.show_sprites_left) {
+			spritepixel = 0;
+		}
+	}
+
+	int show_bgpixel = bgpixel % 4 != 0;
+	int show_spritepixel = spritepixel % 4 != 0;
+
+	BYTE colour = 0;
+
+	if (!show_bgpixel && !show_spritepixel) {
+		colour = 0;
+	} else if (!show_bgpixel && show_spritepixel) {
+		colour = bgpixel;
+	} else {
+		if (ppu.sprite_indices[spritepixel_num] == 0 && x < 255) {
+			ppu.sprite_0hit = 1;
+		}
+
+		if (ppu.sprite_priorities[spritepixel_num] == 0) {
+			colour = spritepixel | 0x10;
+		} else {
+			colour = bgpixel;
+		}
+	}
+
+	RGBA palette = ppu.palettes[PPU_ReadPalette((WORD)colour % 64)];
+	int index = y * SCREEN_WIDTH + x;
+	ppu.buffer_back[index].r = palette.r;
+	ppu.buffer_back[index].g = palette.g;
+	ppu.buffer_back[index].b = palette.b;
+	ppu.buffer_back[index].a = palette.a;
 }
 
 static void PPU_Tick() {
@@ -266,7 +511,7 @@ static void PPU_Tick() {
 		ppu.nmi_delay--;
 
 		if (ppu.nmi_delay == 0 && ppu.nmi_output && ppu.nmi_occurred) {
-			// Trigger NMI
+			CPU_Interrupt_NMI();
 		}
 	}
 
