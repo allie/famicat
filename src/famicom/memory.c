@@ -125,6 +125,13 @@ BYTE Memory_ReadByte(int map, WORD addr) {
 
 	// PPU memory map
 	else {
+		addr = addr % 0x4000;
+
+		// Mapper
+		if (addr < 0x2000) {
+			return memory.mapper.read(addr);
+		}
+
 		// Handle nametable mirrors
 		if (addr >= 0x3000 && addr < 0x3F00) {
 			addr -= 0x1000;
@@ -142,6 +149,7 @@ BYTE Memory_ReadByte(int map, WORD addr) {
 
 		// Nametable 0
 		else if (addr >= 0x2000 && addr < 0x2400) {
+			// printf("reading %4X\n", addr);
 			return memory.nametable0[addr - 0x2000];
 		}
 
@@ -249,6 +257,13 @@ void Memory_WriteByte(int map, WORD addr, BYTE val) {
 
 	// PPU memory map
 	else if (map == MAP_PPU) {
+		addr = addr % 0x4000;
+
+		// Mapper
+		if (addr < 0x2000) {
+			memory.mapper.write(addr, val);
+		}
+
 		// Handle nametable mirrors
 		if (addr >= 0x3000 && addr < 0x3F00) {
 			addr -= 0x1000;

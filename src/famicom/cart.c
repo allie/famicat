@@ -79,6 +79,10 @@ void Cart_Load(const char* file) {
 			buf + 16 + (cart.hastrainer * 512) + (0x4000 * cart.prgromsize),
 			0x2000 * cart.chrromsize * sizeof(BYTE)
 		);
+
+		for (int i = 0; i < 0x2000 * cart.chrromsize; i++) {
+			printf("%2X ", cart.chr[i]);
+		}
 	}
 
 	free(buf);

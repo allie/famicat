@@ -47,18 +47,20 @@ typedef struct {
 	BYTE status;
 	BYTE oam_addr;
 	BYTE scroll;
-	BYTE vram_addr;
+	WORD vram_addr;
+	WORD vram_addr_temp;
 	BYTE vram_data;
 	BYTE odd_frame;
 	BYTE oamdma;
 
 	// Controller
-	BYTE nametable_addr;
+	WORD nametable_addr;
 	BYTE vram_addr_inc;
-	BYTE sprite_pattern_addr;
-	BYTE bg_pattern_addr;
+	WORD sprite_pattern_addr;
+	WORD bg_pattern_addr;
 	BYTE sprite_height;
 	BYTE nmi_on_vblank;
+	BYTE master_slave;
 
 	// Mask
 	BYTE grayscale;
@@ -100,7 +102,6 @@ typedef struct {
 	BYTE sprite_indices[8];
 
 	// Temporary variables + counters
-	BYTE vram_addr_temp;
 	WORD cycle;
 	WORD scanline;
 	QWORD frame;
@@ -109,6 +110,7 @@ typedef struct {
 	BYTE attributetable_byte;
 	BYTE tile_byte_low;
 	BYTE tile_byte_high;
+	BYTE buffered_data;
 
 	// FPS (mostly for debugging)
 	struct timespec frame_time;

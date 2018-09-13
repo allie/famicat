@@ -122,6 +122,7 @@ void PPU_Init() {
 	ppu.attributetable_byte = 0;
 	ppu.tile_byte_low = 0;
 	ppu.tile_byte_high = 0;
+	ppu.buffered_data = 0;
 
 	PPU_ClearBuffers();
 
@@ -144,6 +145,17 @@ void PPU_Reset() {
 	ppu.fps = 0;
 }
 
+static void PPU_NMIChange() {
+	BYTE nmi = ppu.nmi_output && ppu.nmi_occurred;
+
+	if (nmi && !ppu.nmi_previous) {
+		// TODO fix this timing
+		ppu.nmi_delay = 15;
+	}
+
+	ppu.nmi_previous = nmi;
+}
+
 // Write to the PPU control register
 void PPU_WriteController(BYTE val) {
 /*
@@ -162,18 +174,19 @@ void PPU_WriteController(BYTE val) {
 	+--------- Generate an NMI at the start of the
                vertical blanking interval (0: off; 1: on)
 */
-	if (cpu.cycles >= 30000) { // "about" 30000 cycles
-		ppu.controller = val;
+	ppu.controller = val;
 
-		ppu.vram_addr_inc = ((val >> 2) & 0x1) ? 1: 32;
-		ppu.sprite_pattern_addr = ((val >> 3) & 0x1) * 0x1000;
-		ppu.bg_pattern_addr = ((val >> 4) & 0x1) * 0x1000;
-		ppu.sprite_height = ((val >> 5) & 0x1) ? 8 : 16;
-		ppu.nmi_on_vblank = (val >> 7) & 0x1;
+	ppu.nametable_addr = ((val & 0x3) * 0x400) + 0x2000;
+	ppu.vram_addr_inc = ((val >> 2) & 0x1) ? 1: 32;
+	ppu.sprite_pattern_addr = ((val >> 3) & 0x1) * 0x1000;
+	ppu.bg_pattern_addr = ((val >> 4) & 0x1) * 0x1000;
+	ppu.sprite_height = ((val >> 5) & 0x1) ? 8 : 16;
+	ppu.nmi_on_vblank = (val >> 7) & 0x1;
+	ppu.master_slave = (val >> 6) & 0x1;
+	PPU_NMIChange();
 
-		// Change scroll latch to match base nametable address
-		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xF3FF) | ((WORD)(val & 0x3) << 10);
-	}
+	// Change scroll latch to match base nametable address
+	ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xF3FF) | ((WORD)(val & 0x3) << 10);
 }
 
 // Write to the PPU mask register
@@ -192,9 +205,9 @@ void PPU_WriteMask(BYTE val) {
 */
 	ppu.grayscale = val & 0x1;
 	ppu.show_bg_left = (val >> 1) & 0x1;
-	ppu.show_bg = (val >> 2) & 0x1;
-	ppu.show_sprites = (val >> 3) & 0x1;
-	ppu.show_sprites_left = (val >> 4) & 0x1;
+	ppu.show_sprites_left = (val >> 2) & 0x1;
+	ppu.show_bg = (val >> 3) & 0x1;
+	ppu.show_sprites = (val >> 4) & 0x1;
 	ppu.emphasize_red = (val >> 5) & 0x1;
 	ppu.emphasize_green = (val >> 6) & 0x1;
 	ppu.emphasize_blue = (val >> 7) & 0x1;
@@ -202,9 +215,19 @@ void PPU_WriteMask(BYTE val) {
 
 // Read from the PPU status register
 BYTE PPU_ReadStatus() {
-	ppu.status &= 0x7F;
+	BYTE status = ppu.status & 0x1F;
+	status |= ppu.sprite_overflow << 5;
+	status |= ppu.sprite_0hit << 6;
+
+	if (ppu.nmi_occurred) {
+		status |= 1 << 7;
+	}
+
+	ppu.nmi_occurred = 0;
+	PPU_NMIChange();
+
 	ppu.first_write = 1;
-	return ppu.status;
+	return status;
 }
 
 // Write to the PPU OAM address
@@ -220,7 +243,6 @@ void PPU_WriteOAMData(BYTE val) {
 // Read from the PPU OAM data
 BYTE PPU_ReadOAMData() {
 	return ppu.oam[ppu.oam_addr];
-	// TODO: ignore writes during rendering
 }
 
 // Write to the PPU scroll register
@@ -228,10 +250,11 @@ void PPU_WriteScroll(BYTE val) {
 	if (ppu.first_write) {
 		// Horizontal scroll offset
 		ppu.fine_x = val & 0x7;
-		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x7FE0) | ((val & 0xF8) >> 3);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xFFE0) | ((WORD)val >> 3);
 	} else {
 		// Vertical scroll offset
-		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xC1F) | (((WORD)val & 0xF8) << 2) | (((WORD)val & 7) << 12);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x8FFF) | (((WORD)val & 0x07) << 12);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xFC1F) | (((WORD)val & 0xF8) << 2);
 	}
 
 	ppu.first_write = !ppu.first_write;
@@ -241,42 +264,53 @@ void PPU_WriteScroll(BYTE val) {
 void PPU_WriteAddress(BYTE val) {
 	if (ppu.first_write) {
 		// Clear bits 14-8 (and 15), save 5-0 of val to 13-8 of temp
-		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x00FF) | (((WORD)val & 0x3F) << 8);
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x80FF) | (((WORD)val & 0x3F) << 8);
 	} else {
 		// Copy lower 8 bits to temp, set addr to temp value
-		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x7F00) | val;
+		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xFF00) | (WORD)val;
 		ppu.vram_addr = ppu.vram_addr_temp;
 	}
 
 	ppu.first_write = !ppu.first_write;
 }
 
+// Read from the PPU data register
+BYTE PPU_ReadData() {
+	BYTE val = Memory_ReadByte(MAP_PPU, ppu.vram_addr);
+
+	if (ppu.vram_addr % 0x4000 < 0x3F00) {
+		BYTE buffered_data = ppu.buffered_data;
+		ppu.buffered_data = buffered_data;
+		val = buffered_data;
+	} else {
+		ppu.buffered_data = Memory_ReadByte(MAP_PPU, ppu.vram_addr - 0x1000);
+	}
+
+	ppu.vram_addr += ppu.vram_addr_inc;
+
+	return val;
+}
+
 // Write to the PPU data register
 void PPU_WriteData(BYTE val) {
-	// TODO: Disable during rendering
 	Memory_WriteByte(MAP_PPU, ppu.vram_addr, val);
 	ppu.vram_addr += ppu.vram_addr_inc;
 }
 
-// Read from the PPU data register
-BYTE PPU_ReadData() {
-	// TODO: Disable during rendering
-	ppu.vram_data = Memory_ReadByte(MAP_PPU, ppu.vram_addr);
-	ppu.vram_addr += ppu.vram_addr_inc;
-	return ppu.vram_data;
-}
-
 // Write PPU OAM data during DMA
 void PPU_WriteOAMDMA(BYTE val) {
-	WORD addr_high = ((WORD)val << 8);
-	BYTE addr_low = 0;
-	do {
-		ppu.oam[ppu.oam_addr++] = Memory_ReadByte(MAP_CPU, (addr_high | (BYTE)addr_low));
-	} while (++addr_low != 0);
-	if (cpu.cycles % 2 == 0)
+	WORD addr = (WORD)val << 8;
+
+	for (int i = 0; i < 256; i++) {
+		ppu.oam[ppu.oam_addr++] = Memory_ReadByte(MAP_CPU, addr);
+		addr++;
+	}
+
+	if (cpu.cycles % 2 == 0) {
 		CPU_Suspend(514);
-	else
+	} else {
 		CPU_Suspend(513);
+	}
 }
 
 // Read from the palette register
@@ -300,17 +334,6 @@ void PPU_WritePalette(WORD addr, BYTE val) {
 // Unpack data for the current tile
 static DWORD PPU_GetTileData() {
 	return (DWORD)(ppu.tile >> 32);
-}
-
-static void PPU_NMIChange() {
-	BYTE nmi = ppu.nmi_output && ppu.nmi_occurred;
-
-	if (nmi && !ppu.nmi_previous) {
-		// TODO fix this timing
-		ppu.nmi_delay = 15;
-	}
-
-	ppu.nmi_previous = nmi;
 }
 
 static BYTE PPU_GetBackgroundPixel() {
