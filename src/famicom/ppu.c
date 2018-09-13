@@ -1,5 +1,6 @@
 #include "famicom/ppu.h"
 #include "famicom/cpu.h"
+#include "utils/clock.h"
 #include <string.h>
 
 PPU ppu;
@@ -123,6 +124,9 @@ void PPU_Init() {
 	ppu.tile_byte_high = 0;
 
 	PPU_ClearBuffers();
+
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ppu.frame_time);
+	ppu.fps = 0;
 }
 
 // Reinitialize some variables after a reset
@@ -130,10 +134,14 @@ void PPU_Reset() {
 	ppu.cycle = CYCLE_STEP_END;
 	ppu.scanline = SCANLINE_POSTLINE;
 	ppu.frame = 0;
+
 	PPU_WriteController(0);
 	PPU_WriteMask(0);
 	PPU_WriteOAMAddress(0);
 	PPU_ClearBuffers();
+
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ppu.frame_time);
+	ppu.fps = 0;
 }
 
 // Write to the PPU control register
@@ -306,7 +314,7 @@ static void PPU_NMIChange() {
 }
 
 static BYTE PPU_GetBackgroundPixel() {
-	if (ppu.show_bg) {
+	if (!ppu.show_bg) {
 		return 0;
 	}
 
@@ -315,7 +323,7 @@ static BYTE PPU_GetBackgroundPixel() {
 }
 
 static BYTE PPU_GetSpritePixel(int* num) {
-	if (ppu.show_sprites) {
+	if (!ppu.show_sprites) {
 		*num = 0;
 		return 0;
 	}
@@ -329,13 +337,13 @@ static BYTE PPU_GetSpritePixel(int* num) {
 
 		offset = 7 - offset;
 
-		BYTE colour = (BYTE)((ppu.sprite_patterns[i] >> (BYTE)(offset*4)) & 0x0F);
+		BYTE colour = (BYTE)((ppu.sprite_patterns[i] >> (BYTE)(offset * 4)) & 0x0F);
 
 		if (colour % 4 == 0) {
 			continue;
 		}
 
-		*num = i;
+		*num = (BYTE)i;
 		return colour;
 	}
 
@@ -349,11 +357,24 @@ static DWORD PPU_GetSpritePattern(int index, int row) {
 	WORD addr = 0;
 
 	if (ppu.sprite_height == 0) {
-		if (attr * 0x80 == 0x80) {
+		if ((attr & 0x80) == 0x80) {
 			row = 7 - row;
 		}
 
 		addr = 0x1000 * (WORD)ppu.sprite_pattern_addr + ((WORD)tile * 16) + (WORD)row;
+	} else {
+		if ((attr & 0x80) == 0x80) {
+			row = 15 - row;
+		}
+
+		tile &= 0xFE;
+
+		if (row > 7) {
+			tile++;
+			row -= 8;
+		}
+
+		addr = 0x1000 * (WORD)(ppu.sprite_pattern_addr & 1) + ((WORD)tile * 16) + (WORD)row;
 	}
 
 	int a = (attr & 3) << 2;
@@ -377,6 +398,9 @@ static DWORD PPU_GetSpritePattern(int index, int row) {
 			low_tile <<= 1;
 			high_tile <<= 1;
 		}
+
+		data <<= 4;
+		data |= (DWORD)(a | low | high);
 	}
 
 	return data;
@@ -441,6 +465,8 @@ static void PPU_RenderPixel() {
 	if (!show_bgpixel && !show_spritepixel) {
 		colour = 0;
 	} else if (!show_bgpixel && show_spritepixel) {
+		colour = spritepixel | 0x10;
+	} else if (show_bgpixel && !show_spritepixel) {
 		colour = bgpixel;
 	} else {
 		if (ppu.sprite_indices[spritepixel_num] == 0 && x < 255) {
@@ -454,12 +480,21 @@ static void PPU_RenderPixel() {
 		}
 	}
 
-	RGBA palette = ppu.palettes[PPU_ReadPalette((WORD)colour % 64)];
+	RGBA palette = ppu.palettes[PPU_ReadPalette((WORD)colour) % 64];
 	int index = y * SCREEN_WIDTH + x;
 	ppu.buffer_back[index].r = palette.r;
 	ppu.buffer_back[index].g = palette.g;
 	ppu.buffer_back[index].b = palette.b;
 	ppu.buffer_back[index].a = palette.a;
+}
+
+static void PPU_GetFPS() {
+	struct timespec new_time;
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &new_time);
+	ppu.frame_delta = Clock_Diff(ppu.frame_time, new_time);
+	double dt = (double)ppu.frame_delta.tv_nsec / 1000000000.0;
+	ppu.fps = 1.0 / dt;
+	memcpy(&ppu.frame_time, &new_time, sizeof(struct timespec));
 }
 
 void PPU_Step() {
@@ -481,6 +516,7 @@ void PPU_Step() {
 				ppu.scanline = 0;
 				ppu.frame++;
 				ppu.odd_frame ^= 1;
+				PPU_GetFPS();
 				break;
 			}
 		}
@@ -497,6 +533,7 @@ void PPU_Step() {
 				ppu.scanline = 0;
 				ppu.frame++;
 				ppu.odd_frame ^= 1;
+				PPU_GetFPS();
 			}
 		}
 	} while (0);
@@ -517,7 +554,8 @@ void PPU_Step() {
 	int cycle_sprite = ppu.cycle == CYCLE_EVALUATE_SPRITE;
 
 	// Only render if the PPU has BG or sprites visible
-	if (ppu.show_bg || ppu.show_sprites) {
+	// if (ppu.show_bg || ppu.show_sprites) {
+	if (1) {
 		// Render if the current scanline and cycle are part of the visible area of the screen
 		if (line_visible && cycle_visible) {
 			PPU_RenderPixel();

@@ -3,26 +3,12 @@
 #include "famicom/apu.h"
 #include "famicom/ppu.h"
 #include "famicom/memory.h"
-#include "time.h"
+#include "utils/clock.h"
 
 extern CPU cpu;
 extern APU apu;
 extern PPU ppu;
 extern Memory memory;
-
-static struct timespec diff(struct timespec start, struct timespec end) {
-	struct timespec temp;
-
-	if ((end.tv_nsec-start.tv_nsec) < 0) {
-		temp.tv_sec = end.tv_sec-start.tv_sec - 1;
-		temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
-	} else {
-		temp.tv_sec = end.tv_sec - start.tv_sec;
-		temp.tv_nsec = end.tv_nsec - start.tv_nsec;
-	}
-
-	return temp;
-}
 
 static DWORD step(int* last_apu_tick, int* flip) {
 	int cycles = CPU_Step();
@@ -84,7 +70,7 @@ int Famicom_Emulate(void* args) {
 
 	while (2) {
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &new_time);
-		struct timespec dt = diff(current_time, new_time);
+		struct timespec dt = Clock_Diff(current_time, new_time);
 
 		Famicom_Step((double)dt.tv_nsec / 1000000000.0);
 

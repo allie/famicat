@@ -1,6 +1,7 @@
 #include "core/debugger.h"
 #include "core/graphics.h"
 #include "famicom/cpu.h"
+#include "famicom/ppu.h"
 #include "SDL2/SDL.h"
 #include <stdio.h>
 
@@ -21,6 +22,7 @@ static int tab = DEBUGGER_TAB_CPU;
 
 extern CPU cpu;
 extern CPU_History cpu_history;
+extern PPU ppu;
 
 static void Debugger_Toggle() {
 	visible = visible == 0 ? 1 : 0;
@@ -121,6 +123,12 @@ static void Debugger_RenderCPU() {
 	}
 }
 
+static void Debugger_RenderFPS() {
+	char buf[15];
+	sprintf(buf, "PPU FPS: %4.2f", ppu.fps);
+	Graphics_RenderString(buf, 0, 29);
+}
+
 int Debugger_Init() {
 	renderer = Graphics_GetRenderer();
 
@@ -170,6 +178,8 @@ void Debugger_Draw() {
 		Debugger_RenderCPU();
 		break;
 	}
+
+	Debugger_RenderFPS();
 
 	Graphics_RenderString("--------------------------------", 0, 1);
 

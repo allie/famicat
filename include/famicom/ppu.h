@@ -4,6 +4,7 @@
 #include "../common.h"
 #include "cpu.h"
 #include "memory.h"
+#include <time.h>
 
 #define NUM_PALETTES 64
 #define SCREEN_WIDTH 256
@@ -108,6 +109,11 @@ typedef struct {
 	BYTE attributetable_byte;
 	BYTE tile_byte_low;
 	BYTE tile_byte_high;
+
+	// FPS (mostly for debugging)
+	struct timespec frame_time;
+	struct timespec frame_delta;
+	double fps;
 } PPU;
 
 void PPU_Init();
