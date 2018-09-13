@@ -8,6 +8,10 @@ extern Memory memory;
 
 #define SCANLINE_MAX 262
 
+// Standard Famicom colour palette
+// 0xFF0000 R
+// 0x00FF00 G
+// 0x0000FF B
 static DWORD colours[] = {
 	0x666666, 0x002A88, 0x1412A7, 0x3B00A4, 0x5C007E, 0x6E0040, 0x6C0600, 0x561D00,
 	0x333500, 0x0B4800, 0x005200, 0x004F08, 0x00404D, 0x000000, 0x000000, 0x000000,
@@ -19,6 +23,7 @@ static DWORD colours[] = {
 	0xE4E594, 0xCFEF96, 0xBDF4AB, 0xB3F3CC, 0xB5EBF2, 0xB8B8B8, 0x000000, 0x000000,
 };
 
+// Clear and reinitialize data in PPU frame buffers
 static void PPU_ClearBuffers() {
 	if (ppu.buffer_front) {
 		free(ppu.buffer_front);
@@ -38,16 +43,23 @@ static void PPU_ClearBuffers() {
 			ppu.buffer_front[index].g = 0;
 			ppu.buffer_front[index].b = 0;
 			ppu.buffer_front[index].a = 255;
+			ppu.buffer_back[index].r = 0;
+			ppu.buffer_back[index].g = 0;
+			ppu.buffer_back[index].b = 0;
+			ppu.buffer_back[index].a = 255;
 		}
 	}
 }
 
+// Initialize upon power on
 void PPU_Init() {
-	if (ppu.oam != NULL)
+	// OAM data
+	if (ppu.oam != NULL) {
 		free(ppu.oam);
-
+	}
 	ppu.oam = (BYTE*)calloc(0x100, sizeof(BYTE));
 
+	// Registers
 	ppu.controller = 0;
 	ppu.mask = 0;
 	ppu.status = 0xA0;
@@ -57,12 +69,15 @@ void PPU_Init() {
 	ppu.vram_data = 0;
 	ppu.odd_frame = 0;
 
+	// Controller
+	ppu.nametable_addr = 0;
 	ppu.vram_addr_inc = 1;
 	ppu.sprite_pattern_addr = 0;
 	ppu.bg_pattern_addr = 0;
 	ppu.sprite_height = 8;
 	ppu.nmi_on_vblank = 0;
 
+	// Mask
 	ppu.grayscale = 0;
 	ppu.show_bg_left = 1;
 	ppu.show_bg = 1;
@@ -72,10 +87,12 @@ void PPU_Init() {
 	ppu.emphasize_green = 0;
 	ppu.emphasize_blue = 0;
 
+	// Scroll
 	ppu.first_write = 1;
 	ppu.vram_addr_temp = 0;
 	ppu.fine_x = 0;
 
+	// Palettes
 	for (int i = 0; i < NUM_PALETTES; i++) {
 		ppu.palettes[i].r = (BYTE)(colours[i] >> 16);
 		ppu.palettes[i].g = (BYTE)(colours[i] >> 8);
@@ -83,13 +100,32 @@ void PPU_Init() {
 		ppu.palettes[i].a = 255;
 	}
 
+	// Sprite
+	ppu.sprite_0hit = 0;
+	ppu.sprite_overflow = 0;
+	ppu.sprite_count = 0;
+	for (int i = 0; i < 8; i++) {
+		ppu.sprite_patterns[i] = 0;
+		ppu.sprite_positions[i] = 0;
+		ppu.sprite_priorities[i] = 0;
+		ppu.sprite_indices[i] = 0;
+	}
+
+	// Temporary variables + counters
+	ppu.vram_addr_temp = 0;
 	ppu.cycle = 0;
 	ppu.scanline = 0;
 	ppu.frame = 0;
+	ppu.vblank = 0;
+	ppu.nametable_byte = 0;
+	ppu.attributetable_byte = 0;
+	ppu.tile_byte_low = 0;
+	ppu.tile_byte_high = 0;
 
 	PPU_ClearBuffers();
 }
 
+// Reinitialize some variables after a reset
 void PPU_Reset() {
 	ppu.cycle = CYCLE_STEP_END;
 	ppu.scanline = SCANLINE_POSTLINE;
@@ -100,6 +136,7 @@ void PPU_Reset() {
 	PPU_ClearBuffers();
 }
 
+// Write to the PPU control register
 void PPU_WriteController(BYTE val) {
 /*
 	7654 3210
@@ -131,6 +168,7 @@ void PPU_WriteController(BYTE val) {
 	}
 }
 
+// Write to the PPU mask register
 void PPU_WriteMask(BYTE val) {
 /*
 	7654 3210
@@ -154,26 +192,30 @@ void PPU_WriteMask(BYTE val) {
 	ppu.emphasize_blue = (val >> 7) & 0x1;
 }
 
+// Read from the PPU status register
 BYTE PPU_ReadStatus() {
 	ppu.status &= 0x7F;
 	ppu.first_write = 1;
 	return ppu.status;
 }
 
+// Write to the PPU OAM address
 void PPU_WriteOAMAddress(BYTE val) {
 	ppu.oam_addr = val;
 }
 
+// Write to the PPU OAM data
 void PPU_WriteOAMData(BYTE val) {
 	ppu.oam[ppu.oam_addr++] = val;
 }
 
-// necessary?
+// Read from the PPU OAM data
 BYTE PPU_ReadOAMData() {
 	return ppu.oam[ppu.oam_addr];
 	// TODO: ignore writes during rendering
 }
 
+// Write to the PPU scroll register
 void PPU_WriteScroll(BYTE val) {
 	if (ppu.first_write) {
 		// Horizontal scroll offset
@@ -187,6 +229,7 @@ void PPU_WriteScroll(BYTE val) {
 	ppu.first_write = !ppu.first_write;
 }
 
+// Write to the PPU VRAM address register
 void PPU_WriteAddress(BYTE val) {
 	if (ppu.first_write) {
 		// Clear bits 14-8 (and 15), save 5-0 of val to 13-8 of temp
@@ -200,13 +243,14 @@ void PPU_WriteAddress(BYTE val) {
 	ppu.first_write = !ppu.first_write;
 }
 
+// Write to the PPU data register
 void PPU_WriteData(BYTE val) {
 	// TODO: Disable during rendering
 	Memory_WriteByte(MAP_PPU, ppu.vram_addr, val);
 	ppu.vram_addr += ppu.vram_addr_inc;
 }
 
-// necessary?
+// Read from the PPU data register
 BYTE PPU_ReadData() {
 	// TODO: Disable during rendering
 	ppu.vram_data = Memory_ReadByte(MAP_PPU, ppu.vram_addr);
@@ -214,6 +258,7 @@ BYTE PPU_ReadData() {
 	return ppu.vram_data;
 }
 
+// Write PPU OAM data during DMA
 void PPU_WriteOAMDMA(BYTE val) {
 	WORD addr_high = ((WORD)val << 8);
 	BYTE addr_low = 0;
@@ -226,6 +271,7 @@ void PPU_WriteOAMDMA(BYTE val) {
 		CPU_Suspend(513);
 }
 
+// Read from the palette register
 BYTE PPU_ReadPalette(WORD addr) {
 	if (addr >= 16 && addr % 4 == 0) {
 		addr -= 16;
@@ -234,6 +280,7 @@ BYTE PPU_ReadPalette(WORD addr) {
 	return memory.paletteram[addr];
 }
 
+// Write to the palette register
 void PPU_WritePalette(WORD addr, BYTE val) {
 	if (addr >= 16 && addr % 4 == 0) {
 		addr -= 16;
@@ -242,84 +289,9 @@ void PPU_WritePalette(WORD addr, BYTE val) {
 	memory.paletteram[addr] = val;
 }
 
-static void PPU_GetNameTableByte() {
-	BYTE vram_addr = ppu.vram_addr;
-	WORD addr = 0x2000 | (vram_addr & 0x0FFF);
-	ppu.nametable_byte = Memory_ReadByte(MAP_PPU, addr);
-}
-
-static void PPU_GetAttributeTableByte() {
-	BYTE vram_addr = ppu.vram_addr;
-	WORD addr = 0x23C0 | (vram_addr & 0x0C00) | ((vram_addr >> 4) & 0x38) | ((vram_addr >> 2) & 0x07);
-	BYTE shift = ((vram_addr >> 4) & 4) | (vram_addr & 2);
-	ppu.attributetable_byte = ((Memory_ReadByte(MAP_PPU, addr) >> shift) & 3) << 2;
-}
-
-static void PPU_GetLowTileByte() {
-	BYTE fine_y = (ppu.vram_addr >> 12) & 7;
-	WORD addr = 0x1000 * (WORD)ppu.bg_pattern_addr + (WORD)ppu.nametable_byte * 16 + fine_y;
-	ppu.tile_byte_low = Memory_ReadByte(MAP_PPU, addr);
-}
-
-static void PPU_GetHighTileByte() {
-	BYTE fine_y = (ppu.vram_addr >> 12) & 7;
-	WORD addr = 0x1000 * (WORD)ppu.bg_pattern_addr + (WORD)ppu.nametable_byte * 16 + fine_y;
-	ppu.tile_byte_high = Memory_ReadByte(MAP_PPU, addr + 8);
-}
-
-static void PPU_StoreTileData() {
-	DWORD data = 0;
-
-	for (int i = 0; i < 8; i++) {
-		BYTE low = (ppu.tile_byte_low & 0x80) >> 7;
-		BYTE high = (ppu.tile_byte_high & 0x80) >> 6;
-		ppu.tile_byte_low <<= 1;
-		ppu.tile_byte_high <<= 1;
-		data <<= 4;
-		data |= (DWORD)(ppu.attributetable_byte | low | high);
-	}
-
-	ppu.tile |= (QWORD)data;
-}
-
+// Unpack data for the current tile
 static DWORD PPU_GetTileData() {
 	return (DWORD)(ppu.tile >> 32);
-}
-
-static void PPU_IncrementX() {
-	if ((ppu.vram_addr & 0x001F) == 31) {
-		ppu.vram_addr &= 0xFFE0;
-		ppu.vram_addr ^= 0x0400;
-	} else {
-		ppu.vram_addr++;
-	}
-}
-
-static void PPU_IncrementY() {
-	if ((ppu.vram_addr & 0x7000) != 0x7000) {
-		ppu.vram_addr += 0x1000;
-	} else {
-		ppu.vram_addr &= 0x8FFF;
-		WORD y = (ppu.vram_addr & 0x03E0) >> 5;
-
-		if (y == 29) {
-			y = 0;
-			ppu.vram_addr ^= 0x0800;
-		} else if (y == 31) {
-			y = 0;
-		} else {
-			y++;
-		}
-		ppu.vram_addr = (ppu.vram_addr & 0xFC1F) | (y << 5);
-	}
-}
-
-static void PPU_CopyX() {
-	ppu.vram_addr = (ppu.vram_addr & 0xFBE0) | (ppu.vram_addr_temp & 0x041F);
-}
-
-static void PPU_CopyY() {
-	ppu.vram_addr = (ppu.vram_addr & 0x841F) | (ppu.vram_addr_temp & 0x7BE0);
 }
 
 static void PPU_NMIChange() {
@@ -331,22 +303,6 @@ static void PPU_NMIChange() {
 	}
 
 	ppu.nmi_previous = nmi;
-}
-
-static void PPU_SetVBlank() {
-	size_t size = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(RGBA);
-	RGBA* buf = (RGBA*)malloc(size);
-	memcpy(buf, ppu.buffer_front, size);
-	memcpy(ppu.buffer_front, ppu.buffer_back, size);
-	memcpy(ppu.buffer_back, buf, size);
-	free(buf);
-	ppu.nmi_occurred = 1;
-	PPU_NMIChange();
-}
-
-static void PPU_ClearVBlank() {
-	ppu.nmi_occurred = 0;
-	PPU_NMIChange();
 }
 
 static BYTE PPU_GetBackgroundPixel() {
@@ -506,48 +462,53 @@ static void PPU_RenderPixel() {
 	ppu.buffer_back[index].a = palette.a;
 }
 
-static void PPU_Tick() {
+void PPU_Step() {
+	// Decrement NMI timer
 	if (ppu.nmi_delay > 0) {
 		ppu.nmi_delay--;
 
+		// Trigger an NMI if timer reaches 0
 		if (ppu.nmi_delay == 0 && ppu.nmi_output && ppu.nmi_occurred) {
 			CPU_Interrupt_NMI();
 		}
 	}
 
-	if (ppu.show_bg && ppu.show_sprites) {
-		if (ppu.odd_frame && ppu.scanline == SCANLINE_FRAME_END) {
+	do {
+		// Increment frame counter if the frame has been completed
+		if (ppu.show_bg && ppu.show_sprites) {
+			if (ppu.odd_frame && ppu.scanline == SCANLINE_FRAME_END && ppu.cycle == CYCLE_FRAME_END) {
+				ppu.cycle = 0;
+				ppu.scanline = 0;
+				ppu.frame++;
+				ppu.odd_frame ^= 1;
+				break;
+			}
+		}
+
+		// Increment the cycle counter
+		ppu.cycle++;
+
+		// Check whether the cycle counter has reached the end of the step
+		if (ppu.cycle > CYCLE_STEP_END) {
 			ppu.cycle = 0;
-			ppu.scanline = 0;
-			ppu.frame++;
-			ppu.odd_frame = !ppu.odd_frame;
-			return;
+			ppu.scanline++;
+
+			if (ppu.scanline > SCANLINE_FRAME_END) {
+				ppu.scanline = 0;
+				ppu.frame++;
+				ppu.odd_frame ^= 1;
+			}
 		}
-	}
+	} while (0);
 
-	ppu.cycle++;
-
-	if (ppu.cycle > CYCLE_STEP_END) {
-		ppu.cycle = 0;
-		ppu.scanline++;
-
-		if (ppu.scanline > SCANLINE_FRAME_END) {
-			ppu.scanline = 0;
-			ppu.frame++;
-			ppu.odd_frame = !ppu.odd_frame;
-		}
-	}
-}
-
-void PPU_Step() {
-	PPU_Tick();
-
+	// Determine where the current scanline is in the render sequence
 	int line_preline = ppu.scanline == SCANLINE_PRELINE;
 	int line_postline = ppu.scanline == SCANLINE_POSTLINE;
 	int line_visible = ppu.scanline <= SCANLINE_VISIBLE_END;
 	int line_render = line_preline || line_visible;
 	int line_vblank = ppu.scanline == SCANLINE_VBLANK_BEGIN;
 
+	// Determine where the current cycle is in the render sequence
 	int cycle_begin = ppu.cycle == CYCLE_BEGIN;
 	int cycle_prefetch = ppu.cycle >= CYCLE_PREFETCH_BEGIN && ppu.cycle <= CYCLE_PREFETCH_END;
 	int cycle_visible = ppu.cycle >= CYCLE_VISIBLE_BEGIN && ppu.cycle <= CYCLE_VISIBLE_END;
@@ -555,51 +516,112 @@ void PPU_Step() {
 	int cycle_copy_y = ppu.cycle >= CYCLE_COPY_Y_BEGIN && ppu.cycle <= CYCLE_COPY_Y_END;
 	int cycle_sprite = ppu.cycle == CYCLE_EVALUATE_SPRITE;
 
+	// Only render if the PPU has BG or sprites visible
 	if (ppu.show_bg || ppu.show_sprites) {
+		// Render if the current scanline and cycle are part of the visible area of the screen
 		if (line_visible && cycle_visible) {
 			PPU_RenderPixel();
 		}
 
+		// Fetch cycle
 		if (line_render && cycle_fetch) {
 			ppu.tile <<= 4;
 
+			// Temp variables
+			BYTE shift = 0;
+			BYTE fine_y = 0;
+			BYTE low = 0;
+			BYTE high = 0;
+			WORD addr = 0;
+			DWORD data = 0;
+
 			switch (ppu.cycle % 8) {
-				case 1:
-					PPU_GetNameTableByte();
+				// Fetch nametable byte
+				case FETCH_NAMETABLE:
+					addr = 0x2000 | (ppu.vram_addr & 0x0FFF);
+					ppu.nametable_byte = Memory_ReadByte(MAP_PPU, addr);
 					break;
-				case 3:
-					PPU_GetAttributeTableByte();
+
+				// Fetch attribute table byte
+				case FETCH_ATTRIBUTETABLE:
+					addr = 0x23C0 | (ppu.vram_addr & 0x0C00) | ((ppu.vram_addr >> 4) & 0x38) | ((ppu.vram_addr >> 2) & 0x07);
+					shift = ((ppu.vram_addr >> 4) & 4) | (ppu.vram_addr & 2);
+					ppu.attributetable_byte = ((Memory_ReadByte(MAP_PPU, addr) >> shift) & 3) << 2;
 					break;
-				case 5:
-					PPU_GetLowTileByte();
+
+				// Fetch tile low byte
+				case FETCH_TILE_LOW:
+					fine_y = (ppu.vram_addr >> 12) & 7;
+					addr = 0x1000 * (WORD)ppu.bg_pattern_addr + (WORD)ppu.nametable_byte * 16 + fine_y;
+					ppu.tile_byte_low = Memory_ReadByte(MAP_PPU, addr);
 					break;
-				case 7:
-					PPU_GetHighTileByte();
+
+				// Fetch tile high byte
+				case FETCH_TILE_HIGH:
+					fine_y = (ppu.vram_addr >> 12) & 7;
+					addr = 0x1000 * (WORD)ppu.bg_pattern_addr + (WORD)ppu.nametable_byte * 16 + fine_y;
+					ppu.tile_byte_high = Memory_ReadByte(MAP_PPU, addr + 8);
 					break;
-				case 0:
-					PPU_StoreTileData();
+
+				// Store tile data
+				case FETCH_STORE:
+					data = 0;
+					for (int i = 0; i < 8; i++) {
+						low = (ppu.tile_byte_low & 0x80) >> 7;
+						high = (ppu.tile_byte_high & 0x80) >> 6;
+						ppu.tile_byte_low <<= 1;
+						ppu.tile_byte_high <<= 1;
+						data <<= 4;
+						data |= (DWORD)(ppu.attributetable_byte | low | high);
+					}
+					ppu.tile |= (QWORD)data;
 					break;
 			}
 		}
 
+		// Copy Y
 		if (line_preline && cycle_copy_y) {
-			PPU_CopyY();
+			ppu.vram_addr = (ppu.vram_addr & 0x841F) | (ppu.vram_addr_temp & 0x7BE0);
 		}
 
 		if (line_render) {
+			// Increment X
 			if (cycle_fetch && ppu.cycle % 8 == 0) {
-				PPU_IncrementX();
+				if ((ppu.vram_addr & 0x001F) == 31) {
+					ppu.vram_addr &= 0xFFE0;
+					ppu.vram_addr ^= 0x0400;
+				} else {
+					ppu.vram_addr++;
+				}
 			}
 
+			// Increment Y
 			if (ppu.cycle == CYCLE_INCREMENT_Y) {
-				PPU_IncrementY();
+				if ((ppu.vram_addr & 0x7000) != 0x7000) {
+					ppu.vram_addr += 0x1000;
+				} else {
+					ppu.vram_addr &= 0x8FFF;
+					WORD y = (ppu.vram_addr & 0x03E0) >> 5;
+
+					if (y == 29) {
+						y = 0;
+						ppu.vram_addr ^= 0x0800;
+					} else if (y == 31) {
+						y = 0;
+					} else {
+						y++;
+					}
+					ppu.vram_addr = (ppu.vram_addr & 0xFC1F) | (y << 5);
+				}
 			}
 
+			// Copy X
 			if (ppu.cycle == CYCLE_COPY_X) {
-				PPU_CopyX();
+				ppu.vram_addr = (ppu.vram_addr & 0xFBE0) | (ppu.vram_addr_temp & 0x041F);
 			}
 		}
 
+		// Evaluate sprites
 		if (cycle_sprite) {
 			if (line_visible) {
 				PPU_EvaluateSprites();
@@ -609,12 +631,22 @@ void PPU_Step() {
 		}
 	}
 
+	// Set VBlank (swap buffers)
 	if (line_vblank && cycle_begin) {
-		PPU_SetVBlank();
+		size_t size = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(RGBA);
+		RGBA* buf = (RGBA*)malloc(size);
+		memcpy(buf, ppu.buffer_front, size);
+		memcpy(ppu.buffer_front, ppu.buffer_back, size);
+		memcpy(ppu.buffer_back, buf, size);
+		free(buf);
+		ppu.nmi_occurred = 1;
+		PPU_NMIChange();
 	}
 
+	// Clear VBlank
 	if (line_preline && cycle_begin) {
-		PPU_ClearVBlank();
+		ppu.nmi_occurred = 0;
+		PPU_NMIChange();
 		ppu.sprite_0hit = 0;
 		ppu.sprite_overflow = 0;
 	}

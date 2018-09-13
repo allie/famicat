@@ -28,8 +28,16 @@
 #define CYCLE_VISIBLE_END 256
 #define CYCLE_STEP_BEGIN 1
 #define CYCLE_STEP_END 340
+#define CYCLE_FRAME_END 339
 #define CYCLE_BEGIN 1
 #define CYCLE_EVALUATE_SPRITE 257
+
+// Fetch cycles
+#define FETCH_NAMETABLE 1
+#define FETCH_ATTRIBUTETABLE 3
+#define FETCH_TILE_LOW 5
+#define FETCH_TILE_HIGH 7
+#define FETCH_STORE 0
 
 typedef struct {
 	// Registers

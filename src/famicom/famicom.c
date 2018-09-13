@@ -49,14 +49,15 @@ static DWORD step(int* last_apu_tick, int* flip) {
 	return cycles;
 }
 
+// Step all hardware for the given amount of time
 void Famicom_Step(double dt) {
-	cpu.cycles = (int)(CLOCK_SPEED * dt);
+	int cycles = (int)(CLOCK_SPEED * dt);
 
-	int last_apu_tick;
-	int flip;
+	int last_apu_tick = 0;
+	int flip = 0;
 
-	while (cpu.cycles > 0) {
-		cpu.cycles -= step(&last_apu_tick, &flip);
+	while (cycles > 0) {
+		cycles -= step(&last_apu_tick, &flip);
 	}
 }
 
@@ -74,6 +75,7 @@ void Famicom_Reset() {
 	PPU_Reset();
 }
 
+// Main emulation thread
 int Famicom_Emulate(void* args) {
 	struct timespec current_time;
 	struct timespec new_time;
@@ -83,7 +85,6 @@ int Famicom_Emulate(void* args) {
 	while (2) {
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &new_time);
 		struct timespec dt = diff(current_time, new_time);
-		printf("%ld %f\n", dt.tv_nsec, (double)dt.tv_nsec / 1000000000.0);
 
 		Famicom_Step((double)dt.tv_nsec / 1000000000.0);
 
