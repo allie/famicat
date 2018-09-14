@@ -31,9 +31,13 @@ static BYTE NROM_Read(WORD addr) {
 static void NROM_Write(WORD addr, BYTE val) {
 	if (addr < 0x2000) {
 		cart.chr[addr] = val;
-	} else if (addr >= 0x6000) {
+	}
+
+	else if (addr >= 0x6000) {
 		cart.sram[addr - 0x6000] = val;
-	} else {
+	}
+
+	else {
 		// TODO: invalid?
 	}
 }

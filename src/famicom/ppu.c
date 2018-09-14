@@ -124,21 +124,59 @@ void PPU_Init() {
 	ppu.tile_byte_high = 0;
 	ppu.buffered_data = 0;
 
+	// Clear the frame buffers
 	PPU_ClearBuffers();
 
+	// FPS
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ppu.frame_time);
 	ppu.fps = 0;
 }
 
 // Reinitialize some variables after a reset
 void PPU_Reset() {
+/*
+	PPUCTRL ($2000) 					0000 0000
+	PPUMASK ($2001) 					0000 0000
+	PPUSTATUS ($2002) 					U??x xxxx
+	OAMADDR ($2003) 					unchanged
+	$2005 / $2006 latch 				cleared
+	PPUSCROLL ($2005) 					$0000
+	PPUADDR ($2006) 					unchanged
+	PPUDATA ($2007) read buffer 		$00
+	odd frame 							no
+	OAM 								unspecified
+	Palette 							unchanged
+	NT RAM (external, in Control Deck) 	unchanged
+	CHR RAM (external, in Game Pak)	 	unchanged 
+*/
+	// Controller
+	ppu.nametable_addr = 0;
+	ppu.vram_addr_inc = 1;
+	ppu.sprite_pattern_addr = 0;
+	ppu.bg_pattern_addr = 0;
+	ppu.sprite_height = 8;
+	ppu.nmi_on_vblank = 0;
+
+	// Mask
+	ppu.grayscale = 0;
+	ppu.show_bg_left = 1;
+	ppu.show_bg = 1;
+	ppu.show_sprites_left = 1;
+	ppu.show_sprites = 1;
+	ppu.emphasize_red = 0;
+	ppu.emphasize_green = 0;
+	ppu.emphasize_blue = 0;
+
+	// Temporary variables + counters
 	ppu.cycle = CYCLE_STEP_END;
 	ppu.scanline = SCANLINE_POSTLINE;
 	ppu.frame = 0;
 
-	PPU_WriteController(0);
-	PPU_WriteMask(0);
-	PPU_WriteOAMAddress(0);
+	// Misc
+	ppu.first_write = 1;
+	ppu.odd_frame = 0;
+	ppu.fine_x = 0;
+	ppu.buffered_data = 0;
 	PPU_ClearBuffers();
 
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ppu.frame_time);
@@ -156,7 +194,7 @@ static void PPU_NMIChange() {
 	ppu.nmi_previous = nmi;
 }
 
-// Write to the PPU control register
+// $2000 - PPUCTRL
 void PPU_WriteController(BYTE val) {
 /*
 	7654 3210
@@ -176,20 +214,20 @@ void PPU_WriteController(BYTE val) {
 */
 	ppu.controller = val;
 
-	ppu.nametable_addr = ((val & 0x3) * 0x400) + 0x2000;
+	ppu.nametable_addr = val & 0x3;
 	ppu.vram_addr_inc = ((val >> 2) & 0x1) ? 1: 32;
-	ppu.sprite_pattern_addr = ((val >> 3) & 0x1) * 0x1000;
-	ppu.bg_pattern_addr = ((val >> 4) & 0x1) * 0x1000;
+	ppu.sprite_pattern_addr = (val >> 3) & 0x1;
+	ppu.bg_pattern_addr = (val >> 4) & 0x1;
 	ppu.sprite_height = ((val >> 5) & 0x1) ? 8 : 16;
-	ppu.nmi_on_vblank = (val >> 7) & 0x1;
 	ppu.master_slave = (val >> 6) & 0x1;
+	ppu.nmi_on_vblank = ((val >> 7) & 0x1) == 1;
 	PPU_NMIChange();
 
 	// Change scroll latch to match base nametable address
-	ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xF3FF) | ((WORD)(val & 0x3) << 10);
+	ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xF3FF) | (((WORD)val & 0x3) << 10);
 }
 
-// Write to the PPU mask register
+// $2001 - PPUMASK
 void PPU_WriteMask(BYTE val) {
 /*
 	7654 3210
@@ -213,7 +251,7 @@ void PPU_WriteMask(BYTE val) {
 	ppu.emphasize_blue = (val >> 7) & 0x1;
 }
 
-// Read from the PPU status register
+// $2002 - PPUSTATUS
 BYTE PPU_ReadStatus() {
 	BYTE status = ppu.status & 0x1F;
 	status |= ppu.sprite_overflow << 5;
@@ -230,57 +268,57 @@ BYTE PPU_ReadStatus() {
 	return status;
 }
 
-// Write to the PPU OAM address
+// $2003 - OAMADDR
 void PPU_WriteOAMAddress(BYTE val) {
 	ppu.oam_addr = val;
 }
 
-// Write to the PPU OAM data
+// $2004 - OAMDATA
 void PPU_WriteOAMData(BYTE val) {
 	ppu.oam[ppu.oam_addr++] = val;
 }
 
-// Read from the PPU OAM data
+// $2004 - OAMDATA
 BYTE PPU_ReadOAMData() {
 	return ppu.oam[ppu.oam_addr];
 }
 
-// Write to the PPU scroll register
+// $2005 - PPUSCROLL
 void PPU_WriteScroll(BYTE val) {
 	if (ppu.first_write) {
 		// Horizontal scroll offset
 		ppu.fine_x = val & 0x7;
 		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xFFE0) | ((WORD)val >> 3);
+		ppu.first_write = 0;
 	} else {
 		// Vertical scroll offset
 		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x8FFF) | (((WORD)val & 0x07) << 12);
 		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xFC1F) | (((WORD)val & 0xF8) << 2);
+		ppu.first_write = 1;
 	}
-
-	ppu.first_write = !ppu.first_write;
 }
 
-// Write to the PPU VRAM address register
+// $2006 - PPUADDR
 void PPU_WriteAddress(BYTE val) {
 	if (ppu.first_write) {
 		// Clear bits 14-8 (and 15), save 5-0 of val to 13-8 of temp
 		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0x80FF) | (((WORD)val & 0x3F) << 8);
+		ppu.first_write = 0;
 	} else {
 		// Copy lower 8 bits to temp, set addr to temp value
 		ppu.vram_addr_temp = (ppu.vram_addr_temp & 0xFF00) | (WORD)val;
 		ppu.vram_addr = ppu.vram_addr_temp;
+		ppu.first_write = 1;
 	}
-
-	ppu.first_write = !ppu.first_write;
 }
 
-// Read from the PPU data register
+// $2007 - PPUDATA
 BYTE PPU_ReadData() {
 	BYTE val = Memory_ReadByte(MAP_PPU, ppu.vram_addr);
 
-	if (ppu.vram_addr % 0x4000 < 0x3F00) {
+	if ((ppu.vram_addr % 0x4000) < 0x3F00) {
 		BYTE buffered_data = ppu.buffered_data;
-		ppu.buffered_data = buffered_data;
+		ppu.buffered_data = val;
 		val = buffered_data;
 	} else {
 		ppu.buffered_data = Memory_ReadByte(MAP_PPU, ppu.vram_addr - 0x1000);
@@ -291,13 +329,13 @@ BYTE PPU_ReadData() {
 	return val;
 }
 
-// Write to the PPU data register
+// $2007 - PPUDATA
 void PPU_WriteData(BYTE val) {
 	Memory_WriteByte(MAP_PPU, ppu.vram_addr, val);
 	ppu.vram_addr += ppu.vram_addr_inc;
 }
 
-// Write PPU OAM data during DMA
+// $4014 - OAMDMA
 void PPU_WriteOAMDMA(BYTE val) {
 	WORD addr = (WORD)val << 8;
 
@@ -352,7 +390,7 @@ static BYTE PPU_GetSpritePixel(int* num) {
 	}
 
 	for (int i = 0; i < ppu.sprite_count; i++) {
-		int offset = (ppu.cycle - 1) - (int)ppu.sprite_positions[i];
+		int offset = (ppu.cycle - 1) - (int)(ppu.sprite_positions[i]);
 
 		if (offset < 0 || offset > 7) {
 			continue;
@@ -397,7 +435,7 @@ static DWORD PPU_GetSpritePattern(int index, int row) {
 			row -= 8;
 		}
 
-		addr = 0x1000 * (WORD)(ppu.sprite_pattern_addr & 1) + ((WORD)tile * 16) + (WORD)row;
+		addr = 0x1000 * (tile & 1) + ((WORD)tile * 16) + (WORD)row;
 	}
 
 	int a = (attr & 3) << 2;
@@ -411,7 +449,7 @@ static DWORD PPU_GetSpritePattern(int index, int row) {
 		BYTE high = 0;
 
 		if ((attr & 0x40) == 0x40) {
-			low = (low_tile & 1) << 0;
+			low = low_tile & 1;
 			high = (high_tile & 1) << 1;
 			low_tile >>= 1;
 			high_tile >>= 1;
@@ -435,8 +473,8 @@ static void PPU_EvaluateSprites() {
 
 	for (int i = 0; i < 64; i++) {
 		BYTE y = ppu.oam[i * 4];
-		BYTE x = ppu.oam[i * 4 + 3];
 		BYTE a = ppu.oam[i * 4 + 2];
+		BYTE x = ppu.oam[i * 4 + 3];
 		int row = ppu.scanline - y;
 
 		if (row < 0 || row >= height) {
@@ -694,8 +732,9 @@ void PPU_Step() {
 
 	// Set VBlank (swap buffers)
 	if (line_vblank && cycle_begin) {
-		size_t size = SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(RGBA);
-		RGBA* buf = (RGBA*)malloc(size);
+		size_t num = SCREEN_WIDTH * SCREEN_HEIGHT;
+		size_t size = num * sizeof(RGBA);
+		RGBA* buf = (RGBA*)calloc(num, sizeof(RGBA));
 		memcpy(buf, ppu.buffer_front, size);
 		memcpy(ppu.buffer_front, ppu.buffer_back, size);
 		memcpy(ppu.buffer_back, buf, size);

@@ -56,8 +56,8 @@ typedef struct {
 	// Controller
 	WORD nametable_addr;
 	BYTE vram_addr_inc;
-	WORD sprite_pattern_addr;
-	WORD bg_pattern_addr;
+	BYTE sprite_pattern_addr;
+	BYTE bg_pattern_addr;
 	BYTE sprite_height;
 	BYTE nmi_on_vblank;
 	BYTE master_slave;

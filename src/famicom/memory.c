@@ -7,21 +7,13 @@ Memory memory;
 extern Cart cart;
 extern Mapper nrom, mmc1, unrom, cnrom, mmc3, mmc5, mmc2, mmc4;
 
-void Memory_Reset() {
+void Memory_Init() {
 	if (memory.ram != NULL) {
 		free(memory.ram);
 	}
 
 	if (memory.exprom != NULL) {
 		free(memory.exprom);
-	}
-
-	if (memory.pattern0 != NULL) {
-		free(memory.pattern0);
-	}
-
-	if (memory.pattern1 != NULL) {
-		free(memory.pattern1);
 	}
 
 	if (memory.nametable0 != NULL) {
@@ -46,13 +38,31 @@ void Memory_Reset() {
 
 	memory.ram = (BYTE*)calloc(0x800, sizeof(BYTE));
 	memory.exprom = (BYTE*)calloc(0x1FDF, sizeof(BYTE));
-	memory.pattern0 = (BYTE*)calloc(0x1000, sizeof(BYTE));
-	memory.pattern1 = (BYTE*)calloc(0x1000, sizeof(BYTE));
-	memory.nametable0 = (BYTE*)calloc(0x400, sizeof(BYTE));
-	memory.nametable1 = (BYTE*)calloc(0x400, sizeof(BYTE));
-	memory.nametable2 = (BYTE*)calloc(0x400, sizeof(BYTE));
-	memory.nametable3 = (BYTE*)calloc(0x400, sizeof(BYTE));
 	memory.paletteram = (BYTE*)calloc(0x20, sizeof(BYTE));
+
+	// Set up nametable mirroring
+	switch (cart.vramarr) {
+		case H_MIRROR:
+			memory.nametable0 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			memory.nametable1 = memory.nametable0;
+			memory.nametable2 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			memory.nametable3 = memory.nametable2;
+			break;
+
+		case V_MIRROR:
+			memory.nametable0 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			memory.nametable1 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			memory.nametable2 = memory.nametable0;
+			memory.nametable3 = memory.nametable1;
+			break;
+
+		case Q_SCREEN:
+			memory.nametable0 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			memory.nametable1 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			memory.nametable2 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			memory.nametable3 = (BYTE*)calloc(0x400, sizeof(BYTE));
+			break;
+	}
 }
 
 void Memory_SetMapper(int mapper) {
@@ -125,59 +135,46 @@ BYTE Memory_ReadByte(int map, WORD addr) {
 
 	// PPU memory map
 	else {
-		addr = addr % 0x4000;
+		addr %= 0x4000;
 
 		// Mapper
 		if (addr < 0x2000) {
 			return memory.mapper.read(addr);
 		}
 
-		// Handle nametable mirrors
-		if (addr >= 0x3000 && addr < 0x3F00) {
-			addr -= 0x1000;
-		}
+		// Nametables and palette
+		switch (addr & 0xC00) {
+			case 0x0:
+				return memory.nametable0[addr & 0x3FF] ;
+				break;
 
-		// Pattern table 0
-		if (addr < 0x1000) {
-			return memory.pattern0[addr];
-		}
+			case 0x400:
+				return memory.nametable1[addr & 0x3FF];
+				break;
 
-		// Pattern table 1
-		else if (addr >= 0x1000 && addr < 0x2000) {
-			return memory.pattern1[addr - 0x1000];
-		}
+			case 0x800:
+				return memory.nametable2[addr & 0x3FF];
+				break;
 
-		// Nametable 0
-		else if (addr >= 0x2000 && addr < 0x2400) {
-			// printf("reading %4X\n", addr);
-			return memory.nametable0[addr - 0x2000];
-		}
+			case 0xC00:
+				if (addr < 0x3F00) {
+					return memory.nametable3[addr & 0x3FF];
+				} else {
+					// Palette RAM indices + mirrors
+					addr &= 0x1F;
 
-		// Nametable 1
-		else if (addr >= 0x2400 && addr < 0x2800) {
-			return memory.nametable1[addr - 0x2400];
-		}
+					if (addr >= 0x10 && ((addr & 3) == 0)) {
+						addr -= 0x10;
+					}
 
-		// Nametable 2
-		else if (addr >= 0x2800 && addr < 0x2C00) {
-			return memory.nametable2[addr - 0x2800];
-		}
+					return memory.paletteram[addr];
+				}
+				break;
 
-		// Nametable 3
-		else if (addr >= 0x2C00 && addr < 0x3000) {
-			return memory.nametable3[addr - 0x2C00];
-		}
-
-		// Palette RAM indices + mirrors
-		else if (addr >= 0x3F00 && addr <= 0x3FFF) {
-			return memory.paletteram[(addr - 0x3F00) % 0x20];
-		}
-
-		// TODO: mappers?
-
-		// Invalid or not implemented
-		else {
-			return Memory_InvalidRead(MAP_PPU, addr);
+			// Invalid or not implemented
+			default:
+				Memory_InvalidRead(MAP_PPU, addr);
+				break;
 		}
 	}
 
@@ -199,9 +196,6 @@ void Memory_WriteByte(int map, WORD addr, BYTE val) {
 		// PPU control registers + mirrors
 		else if (addr >= 0x2000 && addr < 0x4000) {
 			switch (addr) {
-				case 0x2002: // Status
-					Memory_InvalidWrite(MAP_CPU, addr, val);
-					break;
 				case 0x2000: // Controller
 					PPU_WriteController(val);
 					break;
@@ -257,58 +251,46 @@ void Memory_WriteByte(int map, WORD addr, BYTE val) {
 
 	// PPU memory map
 	else if (map == MAP_PPU) {
-		addr = addr % 0x4000;
+		addr %= 0x4000;
 
 		// Mapper
 		if (addr < 0x2000) {
 			memory.mapper.write(addr, val);
 		}
 
-		// Handle nametable mirrors
-		if (addr >= 0x3000 && addr < 0x3F00) {
-			addr -= 0x1000;
-		}
+		// Nametables and palette
+		switch (addr & 0xC00) {
+			case 0x0:
+				memory.nametable0[addr & 0x3FF] = val;
+				break;
 
-		// Pattern table 0
-		if (addr < 0x1000) {
-			memory.pattern0[addr] = val;
-		}
+			case 0x400:
+				memory.nametable1[addr & 0x3FF] = val;
+				break;
 
-		// Pattern table 1
-		else if (addr >= 0x1000 && addr < 0x2000) {
-			memory.pattern1[addr - 0x1000] = val;
-		}
+			case 0x800:
+				memory.nametable2[addr & 0x3FF] = val;
+				break;
 
-		// Nametable 0
-		else if (addr >= 0x2000 && addr < 0x2400) {
-			memory.nametable0[addr - 0x2000] = val;
-		}
+			case 0xC00:
+				if (addr >= 0x3F00 && addr <= 0x3FFF) {
+					// Palette RAM indices + mirrors
+					addr &= 0x1F;
 
-		// Nametable 1
-		else if (addr >= 0x2400 && addr < 0x2800) {
-			memory.nametable1[addr - 0x2400] = val;
-		}
+					if (addr >= 0x10 && ((addr & 3) == 0)) {
+						addr -= 0x10;
+					}
 
-		// Nametable 2
-		else if (addr >= 0x2800 && addr < 0x2C00) {
-			memory.nametable2[addr - 0x2800] = val;
-		}
+					memory.paletteram[addr] = val & 0x3F;
+				} else {
+					memory.nametable3[addr & 0x3FF] = val;
+				}
+				break;
 
-		// Nametable 3
-		else if (addr >= 0x2C00 && addr < 0x3000) {
-			memory.nametable3[addr - 0x2C00] = val;
-		}
-
-		// Palette RAM indices + mirrors
-		else if (addr >= 0x3F00 && addr <= 0x3FFF) {
-			memory.paletteram[(addr - 0x3F00) % 0x20] = val;
-		}
-
-		// TODO: mappers?
-
-		// Invalid or not implemented
-		else {
-			Memory_InvalidWrite(MAP_PPU, addr, val);
+			// Invalid or not implemented
+			default:
+				Memory_InvalidWrite(MAP_PPU, addr, val);
+				break;
 		}
 	}
 }

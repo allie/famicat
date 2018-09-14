@@ -21,8 +21,6 @@ typedef struct {
 	BYTE* exprom;
 
 	// PPU memory map
-	BYTE* pattern0;
-	BYTE* pattern1;
 	BYTE* nametable0;
 	BYTE* nametable1;
 	BYTE* nametable2;
@@ -33,7 +31,7 @@ typedef struct {
 	Mapper mapper;
 } Memory;
 
-void Memory_Reset();
+void Memory_Init();
 void Memory_SetMapper(int);
 BYTE Memory_ReadByte(int, WORD);
 WORD Memory_ReadWord(int, WORD);

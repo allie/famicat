@@ -6,7 +6,7 @@ Cart cart;
 extern Memory memory;
 
 void Cart_Load(const char* file) {
-	Memory_Reset();
+	Memory_Init();
 
 	FILE* fp = fopen(file, "rb");
 
@@ -58,8 +58,8 @@ void Cart_Load(const char* file) {
 	// Flags 10 is ignored
 
 	// Load trainer data into memory if necessary
+	cart.trainer = calloc(512, sizeof(BYTE));
 	if (cart.hastrainer) {
-		cart.trainer = calloc(512, sizeof(BYTE));
 		memcpy(cart.trainer, buf + 16, 512 * sizeof(BYTE));
 	}
 
@@ -72,17 +72,13 @@ void Cart_Load(const char* file) {
 	);
 
 	// Load CHR ROM into memory if necessary
+	cart.chr = calloc(0x2000 * (cart.chrromsize != 0 ? cart.chrromsize : 1), sizeof(BYTE));
 	if (cart.chrromsize) {
-		cart.chr = calloc(0x2000 * cart.chrromsize, sizeof(BYTE));
 		memcpy(
 			cart.chr,
 			buf + 16 + (cart.hastrainer * 512) + (0x4000 * cart.prgromsize),
 			0x2000 * cart.chrromsize * sizeof(BYTE)
 		);
-
-		for (int i = 0; i < 0x2000 * cart.chrromsize; i++) {
-			printf("%2X ", cart.chr[i]);
-		}
 	}
 
 	free(buf);
